@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>turtle_quest</name>
+  <version>1.0.0</version>
+  <description>Turtle Quest: a mission-based ROS 2 beginner course on top of turtlesim_plus.
+  The quest_master node sets up each mission, checks the objectives through ROS topics
+  and services, and awards stars.</description>
+  <maintainer email="kitti.thamrong@gmail.com">kittinook</maintainer>
+  <license>GPL-3.0-only</license>
+
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>rcl_interfaces</depend>
+  <depend>sensor_msgs</depend>
+  <depend>turtlesim</depend>
+  <depend>turtlesim_plus_interfaces</depend>
+  <exec_depend>turtlesim_plus</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
