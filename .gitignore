@@ -4,3 +4,6 @@ log/
 __pycache__/
 *.pyc
 .vscode/
+
+# reference solutions are kept out of the repo (see TEACHER.md)
+solutions/

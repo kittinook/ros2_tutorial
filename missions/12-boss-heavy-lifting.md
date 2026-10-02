@@ -41,6 +41,38 @@ ros2 launch turtle_quest mission.launch.py mission:=12
 | `/turtle1/joint_command` | topic (out) | `sensor_msgs/msg/JointState` | arm posture |
 | `/turtle1/left_gripper`, `/turtle1/right_gripper` | service | `std_srvs/srv/SetBool` | grip / let go |
 
+### 🕸️ System map
+
+```mermaid
+flowchart LR
+    classDef ros fill:#c8e6c9,stroke:#2e7d32,color:#1b1b1b
+    classDef mine fill:#fff59d,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+    classDef topic fill:#bbdefb,stroke:#1565c0,color:#1b1b1b
+    classDef srv fill:#ffe0b2,stroke:#e65100,color:#1b1b1b
+    classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
+    classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
+    classDef off fill:#f5f5f5,stroke:#9e9e9e,stroke-dasharray:4 3,color:#757575
+    QM(["quest_master"]):::ros --> ITEMS["/mission/items<br/>PoseArray: crates"]:::topic
+    SIM(["turtlesim_plus"]):::ros --> POSE["/turtle1/pose"]:::topic
+    SIM --> TIPS["/turtle1/left_arm/tip<br/>/turtle1/right_arm/tip"]:::topic
+    subgraph ME["crate_mover (your node)"]
+        SM["state machine<br/>approach → grip → carry → backoff"]
+        DRIVE["driving<br/>(mission 5)"]
+        FORK["forklift posture<br/>(IK, mission 10)"]
+        GRIPS["grippers<br/>(mission 11)"]
+        SM --> DRIVE & FORK & GRIPS
+    end
+    ITEMS & POSE & TIPS --> SM
+    DRIVE --> CMD["/turtle1/cmd_vel"]:::topic --> SIM
+    FORK --> JC["/turtle1/joint_command"]:::topic --> SIM
+    GRIPS -. call .-> GR{{"/turtle1/left_gripper<br/>/turtle1/right_gripper"}}:::srv -.- SIM
+    style ME fill:#fffde7,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+```
+
+> 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
+
+One node, two control loops (driving and arms) with a state machine on top — built almost entirely from parts you wrote in missions 5, 10 and 11.
+
 ## 🧠 The plan
 
 One trick makes this much simpler: **keep the arms in one fixed "forklift" posture the whole time** —
@@ -182,18 +214,28 @@ if abs(distance - REACH) < 0.06 and abs(error) < 0.05:
 
 </details>
 
-<details>
-<summary>🔓 The whole file</summary>
-
-`solutions/quest_solutions/quest_solutions/crate_mover.py` — or watch it: `ros2 run quest_solutions crate_mover`
-
-</details>
+> 🧩 There's no full file to unlock here, on purpose: the hints above cover every TODO.
+> Still stuck? Ask your instructor to demo the reference solution, then write your own version.
 
 🏆 **Final boss defeated! You finished Turtle Quest!**
 
 ```bash
 ros2 run turtle_quest progress   # out of 39 stars, how many did you get?
 ```
+
+---
+
+## 🏗️ Design challenge: split it up
+
+`crate_mover` does everything in one node. Real robot software would split it into a **behaviour** node (just the state machine)
+on top of reusable **skill** nodes — see pattern 4 in [ARCHITECTURE.md](../ARCHITECTURE.md#pattern-4-split-big-jobs-into-small-nodes) for the design. Try it:
+
+1. Write `base_controller`: subscribes to `/turtle1/pose` and `/turtle1/base_goal` (`geometry_msgs/msg/Point`), publishes `/turtle1/cmd_vel`. It's your mission 5 controller with a different input
+2. Test it on its own: `ros2 topic pub --once /turtle1/base_goal geometry_msgs/msg/Point "{x: 2.0, y: 2.0}"`
+3. Do the same for `arm_controller`: a world point in, IK, `joint_command` out
+4. Shrink `crate_mover` to a pure state machine that publishes goals and calls the grippers, and start all three nodes with one launch file
+
+Was it easier or harder to change things afterwards? That trade-off is what software architecture is about.
 
 ---
 

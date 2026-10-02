@@ -84,19 +84,29 @@ Touch flag 🚩 1 → the panel shows **Mission complete!** with your stars, and
 
 ## 🔍 What happened behind the scenes?
 
-You just used a real ROS 2 system without noticing:
+You just used a real ROS 2 system without noticing. This picture is its **system map** — every mission has one, and the yellow box is always *you*:
 
 ```mermaid
 flowchart LR
-    T["teleop_turtle<br/>(node)"] -- "/turtle1/cmd_vel<br/>(topic)" --> S["turtlesim_plus<br/>(node)"]
-    S -- "/turtle1/pose" --> Q["quest_master<br/>(node)"]
-    Q -- "/hud" --> S
+    classDef ros fill:#c8e6c9,stroke:#2e7d32,color:#1b1b1b
+    classDef mine fill:#fff59d,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+    classDef topic fill:#bbdefb,stroke:#1565c0,color:#1b1b1b
+    classDef srv fill:#ffe0b2,stroke:#e65100,color:#1b1b1b
+    classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
+    classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
+    classDef off fill:#f5f5f5,stroke:#9e9e9e,stroke-dasharray:4 3,color:#757575
+    TEL(["teleop_turtle<br/>(you, on the keyboard)"]):::mine --> CMD["/turtle1/cmd_vel<br/>Twist"]:::topic --> SIM(["turtlesim_plus"]):::ros
+    SIM --> POSE["/turtle1/pose<br/>Pose"]:::topic --> QM(["quest_master"]):::ros
+    QM --> HUD["/hud<br/>String"]:::topic --> SIM
+    QM --> GOALS["/mission/goals<br/>PoseArray"]:::topic --> SIM
 ```
+
+> 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
 
 - Each program (teleop, the simulator, the quest master) is a **node**
 - They never call each other directly; they send messages over named channels called **topics**
 - teleop doesn't even know who's listening — it just shouts velocity commands onto `/turtle1/cmd_vel`
-- `quest_master` doesn't peek at the screen either: it listens to the turtle's position on `/turtle1/pose` and sends the objectives back to the window on `/hud`
+- `quest_master` doesn't peek at the screen either: it listens to the turtle's position on `/turtle1/pose` and sends the objectives back to the window on `/hud` and the flag on `/mission/goals`
 
 Next mission we'll eavesdrop on these topics 🕵️
 

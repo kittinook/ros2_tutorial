@@ -7,6 +7,7 @@ For anyone running Turtle Quest in a classroom or a workshop.
 - **Do first, theory second** — every mission starts with a concrete goal; the "concept cards" open exactly when learners need them
 - **Instant feedback** — `quest_master` ticks objectives the moment they're met; nobody has to ask "is this right?"
 - **Build on your own code** — mission 5's controller comes back in 6, 7, 8 and 12; mission 10's IK comes back in 11 and 12. Learners feel why readable code matters
+- **See the system, not just the commands** — every mission has a 🕸️ system map; [ARCHITECTURE.md](ARCHITECTURE.md) connects them. Drawing the map on the board *before* coding ("what goes in, what comes out?") is the single best habit to build
 - **Stars are optional** — finishing always earns at least 1 star; stars 2-3 are for those who want to tune and strategise
 
 ## Suggested schedule
@@ -16,16 +17,16 @@ For anyone running Turtle Quest in a classroom or a workshop.
 | Day 1 morning | 0 Boot Camp | 30-60 min | mostly installation — preparing machines beforehand saves a lot |
 | | 1 Spy Turtle | 30-45 min | |
 | Day 1 afternoon | 2 Steering Wheel | 30-45 min | have learners compute on paper before typing |
-| | 3 Service Hotline | 30-45 min | |
+| | 3 Service Hotline | 30-45 min | finish with the first half of ARCHITECTURE.md (big picture, the four ways nodes talk) |
 | Day 2 morning | 4 My First Node | 60 min | where people get stuck most: `setup.py`, forgetting to build/source |
 | | 5 Turtle Eyes | 45-60 min | drawing atan2 on the board helps a lot |
 | Day 2 afternoon | 6 Pizza Hunter | 60 min | |
 | | 7 Turtle Team | 45-60 min | |
-| Day 3 (or homework) | 8 Boss | 60-90 min | pairs work well |
+| Day 3 (or homework) | 8 Boss | 60-90 min | pairs work well; afterwards, ARCHITECTURE.md's design patterns |
 | Day 4 morning | 9 Arm Day | 30-45 min | let them play — intuition for joint space pays off in 10 |
 | | 10 Long Reach | 60-90 min | derive the law-of-cosines IK together on the board |
 | Day 4 afternoon | 11 Pick & Place | 60 min | |
-| Day 5 (or project) | 12 Boss | 90+ min | great as a team project / competition |
+| Day 5 (or project) | 12 Boss | 90+ min | great as a team project / competition; the "split it up" design challenge makes a good follow-up project |
 
 Part 2 (missions 9-12) works as a follow-up course for learners who already know ROS 2 basics.
 
@@ -76,7 +77,10 @@ The cheat detection is a deterrent, not security. A learner determined to dodge 
 
 ## Solutions
 
-`solutions/quest_solutions/` is a package built along with everything else. Use it to demo "this is what the goal looks like":
+Reference solutions for every coding mission live in a separate package, `quest_solutions`, which is **not published in this repository**
+so learners can't peek. Instructors can request it from the maintainer. Put it in `solutions/quest_solutions/` (the `solutions/` folder is
+gitignored, so it never gets committed by accident) and rebuild; colcon picks it up along with everything else.
+Use it to demo "this is what the goal looks like":
 
 ```bash
 ros2 run quest_solutions square              # mission 4
@@ -90,7 +94,7 @@ ros2 run quest_solutions crate_mover         # mission 12
 ```
 
 The solutions are tuned for 3 stars; the code in the mission guides defaults to 2 stars (missions 4-8), leaving room for learners to improve it.
-To hide the solutions from learners, delete the `solutions/` folder before handing out the repo.
+The guides for missions 8 and 12 deliberately stop at hints and tell learners to ask you for a demo.
 
 ## Tuning the difficulty
 

@@ -137,6 +137,40 @@ Teleporting right on top of a pizza always works, whichever way you face.
 
 ---
 
+## 🕸️ System map: what you just did
+
+```mermaid
+flowchart LR
+    classDef ros fill:#c8e6c9,stroke:#2e7d32,color:#1b1b1b
+    classDef mine fill:#fff59d,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+    classDef topic fill:#bbdefb,stroke:#1565c0,color:#1b1b1b
+    classDef srv fill:#ffe0b2,stroke:#e65100,color:#1b1b1b
+    classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
+    classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
+    classDef off fill:#f5f5f5,stroke:#9e9e9e,stroke-dasharray:4 3,color:#757575
+    YOU(["ros2 service call<br/>(you, the client)"]):::mine
+    SIM(["turtlesim_plus<br/>(the server)"]):::ros
+    YOU -. call .-> SPAWN{{"/spawn_turtle<br/>Spawn"}}:::srv -.- SIM
+    YOU -. call .-> TP{{"/turtle1/teleport_absolute<br/>TeleportAbsolute"}}:::srv -.- SIM
+    YOU -. call .-> EAT{{"/turtle1/eat<br/>Empty"}}:::srv -.- SIM
+    SIM -- "spawning buddy creates<br/>a whole new set" --> BUDDY
+    subgraph BUDDY["new: everything under /buddy"]
+        BP["/buddy/pose"]:::topic
+        BE{{"/buddy/eat"}}:::srv
+    end
+    SIM --> PC["/turtle1/pizza_count<br/>Int64"]:::topic --> QM(["quest_master"]):::ros
+    BP --> QM
+```
+
+> 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
+
+- One node (`turtlesim_plus`) is the **server** for many services; you were the **client** of each call
+- Each call is a round trip: request out, response back, done. Nothing keeps flowing afterwards, unlike a topic
+- A service can change the graph itself: `/spawn_turtle` created a whole new set of topics and services under `/buddy/`, and quest_master noticed `/buddy/pose` appear
+- Services and topics **work together**: you ate with a service (`/turtle1/eat`), and the result was announced on a topic (`/turtle1/pizza_count`) that quest_master listens to
+
+> 🏗️ You now know topics and services — a good moment to read [ARCHITECTURE.md](../ARCHITECTURE.md) for the big picture of how ROS 2 systems fit together.
+
 ## 🔍 Commands you now know
 
 | Command | What it does |

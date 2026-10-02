@@ -32,6 +32,28 @@ ros2 launch turtle_quest mission.launch.py mission:=11
 
 A pizza dropped anywhere inside the plate ring counts.
 
+### 🕸️ System map
+
+```mermaid
+flowchart LR
+    classDef ros fill:#c8e6c9,stroke:#2e7d32,color:#1b1b1b
+    classDef mine fill:#fff59d,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+    classDef topic fill:#bbdefb,stroke:#1565c0,color:#1b1b1b
+    classDef srv fill:#ffe0b2,stroke:#e65100,color:#1b1b1b
+    classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
+    classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
+    classDef off fill:#f5f5f5,stroke:#9e9e9e,stroke-dasharray:4 3,color:#757575
+    QM(["quest_master"]):::ros --> ITEMS["/mission/items<br/>PoseArray: pizzas still to serve"]:::topic --> ME
+    SIM(["turtlesim_plus"]):::ros --> POSE["/turtle1/pose"]:::topic --> ME
+    SIM --> JS["/turtle1/joint_states<br/>JointState"]:::topic -- "arrived?" --> ME
+    ME(["pick_place<br/>(your node)<br/>state machine"]):::mine --> JC["/turtle1/joint_command<br/>JointState"]:::topic --> SIM
+    ME -. "call_async → success?" .-> GR{{"/turtle1/left_gripper<br/>/turtle1/right_gripper<br/>SetBool"}}:::srv -.- SIM
+```
+
+> 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
+
+Two signals move the state machine forward, and both come back *into* the node: **`joint_states`** (has the arm arrived?) and the gripper **service response** (did the grab work?).
+
 ## 🧠 Concept card: a manipulation state machine
 
 In mission 8 the state could be read from a topic every loop. Here we must **remember** where we are in the sequence, and only move on when something has finished: the arm has *arrived*, or the gripper service has *answered*.

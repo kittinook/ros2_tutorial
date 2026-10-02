@@ -194,6 +194,32 @@ ros2 service call /turtle1/left_gripper std_srvs/srv/SetBool "{data: true}"
 
 ---
 
+## 🕸️ System map: what you just did
+
+```mermaid
+flowchart LR
+    classDef ros fill:#c8e6c9,stroke:#2e7d32,color:#1b1b1b
+    classDef mine fill:#fff59d,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+    classDef topic fill:#bbdefb,stroke:#1565c0,color:#1b1b1b
+    classDef srv fill:#ffe0b2,stroke:#e65100,color:#1b1b1b
+    classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
+    classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
+    classDef off fill:#f5f5f5,stroke:#9e9e9e,stroke-dasharray:4 3,color:#757575
+    PUB(["ros2 topic pub"]):::mine --> JC["/turtle1/joint_command<br/>JointState: where I WANT the joints"]:::topic --> SIM(["turtlesim_plus"]):::ros
+    SIM --> JS["/turtle1/joint_states<br/>JointState: where the joints ARE"]:::topic --> ECHO(["ros2 topic echo"]):::mine
+    SIM --> TIP["/turtle1/left_arm/tip<br/>/turtle1/right_arm/tip<br/>Point"]:::topic --> ECHO
+    CALL(["ros2 service call"]):::mine -. call .-> GR{{"/turtle1/left_gripper<br/>/turtle1/right_gripper<br/>SetBool"}}:::srv -.- SIM
+    SIM --> HOLD["/turtle1/left_gripper/holding<br/>/turtle1/right_gripper/holding<br/>String"]:::topic --> QM(["quest_master"]):::ros
+    TIP --> QM
+```
+
+> 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
+
+- **Command vs. state:** you write targets to `joint_command`, the simulator reports reality on `joint_states` — same message type, two topics, opposite directions.
+  It's the same idea as `cmd_vel` (what I want) vs. `pose` (what actually happened), and real arms work exactly this way
+- The grippers are a **service** because you want an answer (*did I grab something?*); joint targets are a **topic** because they're a stream you may update at any moment
+- `tip` and `holding` are what quest_master reads to tick your objectives
+
 ## 🔍 Summary
 
 - Arms are controlled in **joint space**: you command angles, not positions

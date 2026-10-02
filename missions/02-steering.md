@@ -139,6 +139,29 @@ A full circle is 2π radians; at 1 rad/s that takes about **6.3 seconds**, then 
 
 ---
 
+## 🕸️ System map: what you just did
+
+```mermaid
+flowchart LR
+    classDef ros fill:#c8e6c9,stroke:#2e7d32,color:#1b1b1b
+    classDef mine fill:#fff59d,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+    classDef topic fill:#bbdefb,stroke:#1565c0,color:#1b1b1b
+    classDef srv fill:#ffe0b2,stroke:#e65100,color:#1b1b1b
+    classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
+    classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
+    classDef off fill:#f5f5f5,stroke:#9e9e9e,stroke-dasharray:4 3,color:#757575
+    PUB(["ros2 topic pub<br/>(you)"]):::mine --> CMD["/turtle1/cmd_vel<br/>Twist"]:::topic
+    TEL(["teleop_turtle<br/>(not allowed this time)"]):::off -.-x CMD
+    CMD --> SIM(["turtlesim_plus"]):::ros --> POSE["/turtle1/pose<br/>Pose"]:::topic --> QM(["quest_master"]):::ros
+    QM ---|"checks WHO<br/>publishes here"| CMD
+```
+
+> 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
+
+- A topic can have **several publishers**. `turtlesim_plus` obeys whatever arrives on `/turtle1/cmd_vel`; it can't tell who sent it
+- So quest_master doesn't read the messages to catch teleop: it asks the ROS graph **who** publishes there (exactly what `ros2 topic info -v` shows)
+- The grey dashed box is teleop: fine in mission 0, forbidden here
+
 ## 🔍 Summary
 
 - Driving a mobile robot = **publishing `geometry_msgs/msg/Twist` to `cmd_vel`** — real robots like TurtleBot work exactly the same

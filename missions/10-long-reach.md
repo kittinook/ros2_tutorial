@@ -80,6 +80,37 @@ From the shoulder, the target is at (dx, dy), distance d. The upper arm (L1), th
 
 ---
 
+## 🕸️ System map: what you'll build
+
+```mermaid
+flowchart LR
+    classDef ros fill:#c8e6c9,stroke:#2e7d32,color:#1b1b1b
+    classDef mine fill:#fff59d,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+    classDef topic fill:#bbdefb,stroke:#1565c0,color:#1b1b1b
+    classDef srv fill:#ffe0b2,stroke:#e65100,color:#1b1b1b
+    classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
+    classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
+    classDef off fill:#f5f5f5,stroke:#9e9e9e,stroke-dasharray:4 3,color:#757575
+    SIM(["turtlesim_plus"]):::ros --> POSE["/turtle1/pose<br/>Pose"]:::topic
+    QM(["quest_master"]):::ros --> GOALS["/mission/goals<br/>PoseArray"]:::topic
+    subgraph ME["arm_reach (your node)"]
+        direction LR
+        W["next flag<br/>(world x, y)"] --> F["to_turtle_frame()"] --> IK["inverse_kinematics()<br/>left or right arm?"] --> MSG["JointState<br/>(names + angles)"]
+    end
+    GOALS --> W
+    POSE --> F
+    MSG --> JC["/turtle1/joint_command<br/>JointState"]:::topic --> SIM
+    style ME fill:#fffde7,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+```
+
+> 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
+
+- From the outside it's simple: two topics in, one out
+- The interesting part is **inside**: a pipeline of plain Python functions with no ROS in them, so you can test them on their own (you will, in Step 1)
+- Only the last step builds a ROS message. Keeping the maths apart from the ROS plumbing is good design
+
+---
+
 ## Step 1: The maths as Python functions
 
 Create `src/my_turtle/my_turtle/arm_reach.py` with the full node below. The two helper functions at the top are the whole concept card above, in code:
