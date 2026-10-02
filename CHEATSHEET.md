@@ -1,4 +1,4 @@
-# 📋 Cheat Sheet — ROS 2, turtle edition
+# Cheat sheet
 
 ## Every new terminal
 
@@ -16,7 +16,7 @@ colcon build --symlink-install --packages-select my_turtle   # just one
 source install/setup.bash                           # after every build
 ```
 
-Edited a `.py` → just run again · edited `setup.py` / `package.xml` / added a launch file → build + source again
+After editing a `.py` file, just run it again. After editing `setup.py` or `package.xml`, or adding a launch file, build and source again.
 
 ## CLI commands
 
@@ -165,7 +165,7 @@ q1 = math.atan2(dy, dx) - math.atan2(L2 * math.sin(q2), L1 + L2 * math.cos(q2))
 
 ## turtlesim_plus interfaces
 
-**World**
+### World
 
 | Name | Kind | Type |
 |---|---|---|
@@ -173,18 +173,18 @@ q1 = math.atan2(dy, dx) - math.atan2(L2 * math.sin(q2), L1 + L2 * math.cos(q2))
 | `/remove_turtle` | service | `turtlesim/srv/Kill` |
 | `/spawn_pizza`, `/spawn_parcel`, `/spawn_crate` | service | `turtlesim_plus_interfaces/srv/GivePosition` |
 | `/clear` (erase lines), `/clear_objects` (remove pizzas/parcels/crates) | service | `std_srvs/srv/Empty` |
-| `/hud` | topic (in) | `std_msgs/msg/String` — text in the side panel |
-| `/mission/goals` | topic (in) | `geometry_msgs/msg/PoseArray` — flags to draw (z = radius) |
-| `/judge/objects` | topic (out) | `turtlesim_plus_interfaces/msg/WorldObjectArray` — the referee's view (hands off in missions 😉) |
+| `/hud` | topic (in) | `std_msgs/msg/String`: text in the side panel |
+| `/mission/goals` | topic (in) | `geometry_msgs/msg/PoseArray`: flags to draw (z = radius) |
+| `/judge/objects` | topic (out) | `turtlesim_plus_interfaces/msg/WorldObjectArray`: the referee's view (hands off in missions) |
 
-**Per turtle** (`/turtle1/...`)
+### Per turtle (`/turtle1/...`)
 
 | Name | Kind | Type |
 |---|---|---|
-| `cmd_vel` | topic (in) | `geometry_msgs/msg/Twist` — stops by itself 1 s after the last command |
-| `say` | topic (in) | `std_msgs/msg/String` — speech bubble for 5 s |
-| `pose` | topic (out) | `turtlesim/msg/Pose` — 100 times/s |
-| `scan` | topic (out) | `turtlesim_plus_interfaces/msg/ScannerDataArray` — empty = nothing in sight |
+| `cmd_vel` | topic (in) | `geometry_msgs/msg/Twist`: stops by itself 1 s after the last command |
+| `say` | topic (in) | `std_msgs/msg/String`: speech bubble for 5 s |
+| `pose` | topic (out) | `turtlesim/msg/Pose`: 100 times/s |
+| `scan` | topic (out) | `turtlesim_plus_interfaces/msg/ScannerDataArray`: empty = nothing in sight |
 | `pizza_count`, `parcel_count` | topic (out) | `std_msgs/msg/Int64` |
 | `carrying_parcel` | topic (out) | `std_msgs/msg/Bool` |
 | `eat`, `pickup`, `dropoff`, `stop` | service | `std_srvs/srv/Empty` |
@@ -192,15 +192,15 @@ q1 = math.atan2(dy, dx) - math.atan2(L2 * math.sin(q2), L1 + L2 * math.cos(q2))
 | `teleport_absolute`, `teleport_relative` | service | `turtlesim/srv/TeleportAbsolute`, `TeleportRelative` |
 | `detect_pizza` | action | `turtlesim_plus_interfaces/action/GetData` |
 
-**Arms** (only with `arms:=true`; missions 9-12 do it for you)
+### Arms (only with `arms:=true`; missions 9-12 do it for you)
 
 | Name | Kind | Type |
 |---|---|---|
-| `joint_command` | topic (in) | `sensor_msgs/msg/JointState` — target angles by joint name |
-| `joint_states` | topic (out) | `sensor_msgs/msg/JointState` — `left_shoulder`, `left_elbow`, `right_shoulder`, `right_elbow` |
-| `left_arm/tip`, `right_arm/tip` | topic (out) | `geometry_msgs/msg/Point` — gripper position, world frame |
-| `left_gripper`, `right_gripper` | service | `std_srvs/srv/SetBool` — true = grab, false = release |
-| `left_gripper/holding`, `right_gripper/holding` | topic (out) | `std_msgs/msg/String` — `''`, `Pizza`, `Parcel` or `Crate` |
+| `joint_command` | topic (in) | `sensor_msgs/msg/JointState`: target angles by joint name |
+| `joint_states` | topic (out) | `sensor_msgs/msg/JointState`: `left_shoulder`, `left_elbow`, `right_shoulder`, `right_elbow` |
+| `left_arm/tip`, `right_arm/tip` | topic (out) | `geometry_msgs/msg/Point`: gripper position, world frame |
+| `left_gripper`, `right_gripper` | service | `std_srvs/srv/SetBool`: true = grab, false = release |
+| `left_gripper/holding`, `right_gripper/holding` | topic (out) | `std_msgs/msg/String`: `''`, `Pizza`, `Parcel` or `Crate` |
 
 **Sizes:** world 10.88 × 10.88 m · turtle starts at (5.44, 5.44) · scanner 4 m / 60° · eat & pickup 2 m / 60° · DROP-OFF (9.38, 9.38) radius 1.2 m
 · arms: shoulders ±0.3 m, links 0.8 + 0.7 m, shoulder ±π, elbow ±2.7 rad, 2 rad/s · grab within 0.4 m (crate: 0.65 m from its centre)

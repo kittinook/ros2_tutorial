@@ -1,26 +1,25 @@
-# Mission 4: My First Node 🐍
+# Mission 4: My First Node
 
-> **Briefing:** Typing commands one by one is exhausting... time to write **your own program** that drives the turtle for you!
-> First job: draw a **square**, 4 metres per side, passing all 4 flags in order.
+Typing commands one at a time gets old fast, so this time you write a program that drives the turtle for you. The first job is a square, 4 metres per side, passing all four flags in order.
 
 ![Mission 4: the turtle has drawn three sides of the square](../docs/images/mission-4.png)
 
-**🎯 Objectives**
+**Objectives**
 - [ ] Draw a square through the flags 1 → 2 → 3 → 4
 - [ ] Drive the turtle with your own node (no teleop / `ros2 topic pub`)
 
-**⭐ Stars:** ≤ 16 s = ⭐⭐⭐ · ≤ 30 s = ⭐⭐ — the clock starts when the turtle starts moving
+**Stars:** ≤ 16 s = ⭐⭐⭐ · ≤ 30 s = ⭐⭐ · the clock starts when the turtle starts moving
 
 ```bash
 # Terminal 1
 ros2 launch turtle_quest mission.launch.py mission:=4
 ```
 
-The turtle is teleported to (3, 3) facing right. Flags: (7, 3) → (7, 7) → (3, 7) → (3, 3)
+The turtle is teleported to (3, 3), facing right. The flags are at (7, 3), (7, 7), (3, 7) and (3, 3), in that order.
 
 ---
 
-## 🕸️ System map: what you'll build
+## System map
 
 ```mermaid
 flowchart LR
@@ -42,15 +41,17 @@ flowchart LR
 
 > 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
 
-- Your node publishes on `/turtle1/cmd_vel`, the same topic `ros2 topic pub` used in mission 2, so the simulator can't tell the difference
-- Inside the node, a **timer** drives a **publisher**. Nothing comes back *into* your node: it can't see where the turtle is (more on that at the end)
-- quest_master checks the **node name** of whoever publishes on `cmd_vel`: yours will be `square`, not `teleop_turtle` or `_ros2cli_...`
+Your node publishes on `/turtle1/cmd_vel`, the same topic `ros2 topic pub` used in mission 2, so the simulator can't tell the difference.
+
+Inside the node, a timer drives a publisher. Nothing comes back into your node, so it can't see where the turtle is. More on that at the end.
+
+quest_master checks the node name of whoever publishes on `cmd_vel`. Yours will be `square`, not `teleop_turtle` or `_ros2cli_...`.
 
 ---
 
 ## Step 1: Create a package
 
-ROS 2 code always lives in a **package**. Create your own box in `src/`:
+ROS 2 code always lives in a **package**. Create your own in `src/`:
 
 ```bash
 cd ~/turtle_quest/src
@@ -58,8 +59,7 @@ ros2 pkg create --build-type ament_python my_turtle \
   --dependencies rclpy geometry_msgs std_msgs std_srvs sensor_msgs turtlesim turtlesim_plus_interfaces
 ```
 
-- `--build-type ament_python` = a Python package
-- `--dependencies ...` = other packages you'll use (written into `package.xml` for you)
+`--build-type ament_python` makes it a Python package. `--dependencies ...` lists the other packages you'll use, and they get written into `package.xml` for you.
 
 You get:
 
@@ -74,7 +74,7 @@ src/my_turtle/
 └── test/
 ```
 
-## Step 2: A first node — just drive in circles
+## Step 2: A first node that drives in circles
 
 Create `src/my_turtle/my_turtle/square.py`:
 
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     main()
 ```
 
-### 🧠 Concept card: anatomy of a node
+### Anatomy of a node
 
 ```mermaid
 flowchart LR
@@ -124,10 +124,9 @@ flowchart LR
     C -- "every 0.1 s" --> E["timer_callback()<br/>publish Twist"] --> C
 ```
 
-- Every node is a class that inherits from `Node`
-- You don't write `while True:` + `sleep()` yourself; you **tell ROS "call this function every 0.1 s"** and `spin()` takes care of it
-  (next mission shows why this matters: the node must stay free to receive incoming messages)
-- Why send every 0.1 s? Remember the 1-second rule — stop sending and the turtle stops
+Every node is a class that inherits from `Node`. You don't write a `while True:` loop with `sleep()` yourself. You tell ROS to call a function every 0.1 s, and `spin()` takes care of it. The next mission shows why that matters: the node has to stay free to receive incoming messages.
+
+It sends every 0.1 s because of the 1-second rule. Stop sending and the turtle stops.
 
 ## Step 3: Register the program
 
@@ -141,9 +140,7 @@ Open `src/my_turtle/setup.py`, find `entry_points` and add this line:
     },
 ```
 
-Read it as: "the command `square` = run the `main` function in `my_turtle/square.py`"
-
-How the three names fit together:
+That reads as "the command `square` runs the `main` function in `my_turtle/square.py`". Here is how the three names fit together:
 
 ```mermaid
 flowchart LR
@@ -154,11 +151,10 @@ flowchart LR
     classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
     classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
     classDef off fill:#f5f5f5,stroke:#9e9e9e,stroke-dasharray:4 3,color:#757575
-    PKG["📦 package my_turtle<br/>src/my_turtle/"] -- "setup.py entry_points:<br/>square = my_turtle.square:main" --> EXE["⚙️ executable square<br/>(installed by colcon build)"] -- "ros2 run my_turtle square" --> NODE(["🟢 node /square<br/>(a running process)"]):::mine
+    PKG["package my_turtle<br/>src/my_turtle/"] -- "setup.py entry_points:<br/>square = my_turtle.square:main" --> EXE["executable square<br/>(installed by colcon build)"] -- "ros2 run my_turtle square" --> NODE(["node /square<br/>(a running process)"]):::mine
 ```
 
-The **package** is the box of code, the **executable** is one program in it, and the **node** is what that program creates when it runs.
-One executable can be started many times as separate nodes — you'll do exactly that in mission 7.
+The package is the box of code, the executable is one program in it, and the node is what that program creates when it runs. One executable can be started many times as separate nodes, which is exactly what you'll do in mission 7.
 
 ## Step 4: Build and run
 
@@ -169,25 +165,22 @@ source install/setup.bash
 ros2 run my_turtle square
 ```
 
-The turtle drives in circles 🎉 That's your first ROS 2 program! (`Ctrl+C` to stop)
+The turtle drives in circles. Stop it with `Ctrl+C`.
 
-Peek from another terminal:
+While it runs, check from another terminal:
 
 ```bash
 ros2 node list                          # /square is there now
 ros2 topic info -v /turtle1/cmd_vel     # the publisher is your node
 ```
 
-> 💡 **What does `--symlink-install` buy you?** The .py files in install/ are just "shortcuts" back to src/
-> → **edit your code and run it again, no rebuild needed**
-> Except when you change `setup.py` (e.g. add a new program): then build + source again
+With `--symlink-install`, the .py files in `install/` are only shortcuts back to `src/`, so you can edit your code and run it again without rebuilding. The exception is `setup.py`: if you change it (to add a new program, say), build and source again.
 
-## Step 5: Draw the square ⬜
+## Step 5: Draw the square
 
-A square = (go straight 4 m → turn left 90°) × 4
+A square is four repeats of "drive 4 m straight, turn left 90°".
 
-Instead of sending the same command forever, write a **plan**: a list of steps `(forward speed, turn speed, duration)`,
-and let the timer check the clock to know which step we're in. Change `square.py` to:
+Instead of sending the same command forever, write a plan: a list of steps `(forward speed, turn speed, duration)`. The timer checks the clock to know which step it's in. Change `square.py` to:
 
 ```python
 # my_turtle/my_turtle/square.py
@@ -248,50 +241,49 @@ if __name__ == '__main__':
     main()
 ```
 
-Close and relaunch the mission (the turtle goes back to its start), then run — no rebuild thanks to `--symlink-install`:
+Close and relaunch the mission so the turtle goes back to its start, then run it. Thanks to `--symlink-install` there's no rebuild:
 
 ```bash
 ros2 run my_turtle square
 ```
 
-🎉 Mission complete! ...but how many stars? 🤔
+The panel shows *Mission complete*, most likely with two stars. The box below explains why.
 
 <details>
-<summary>🧮 Why only 2 stars?</summary>
+<summary>Why only 2 stars?</summary>
 
-Time = 4 × (drive 4 s + turn π/2 ≈ 1.57 s) ≈ **22 seconds** — more than 16.
-Try raising `SPEED` and `TURN_SPEED`! (Does it get less accurate? Why?)
+Time = 4 × (drive 4 s + turn π/2 ≈ 1.57 s) ≈ 22 seconds, which is more than 16.
+Try raising `SPEED` and `TURN_SPEED`. Does it get less accurate? Why?
 
 </details>
 
 ---
 
-## 🔍 Summary
+## Summary
 
-- **package**: created with `ros2 pkg create`; code lives in `<pkg>/<pkg>/`; programs are registered in `setup.py`
-- **publisher**: `self.create_publisher(Type, 'topic', 10)` then `.publish(msg)`
-- **timer**: `self.create_timer(seconds, function)` — ROS calls you periodically
-- lifecycle: `rclpy.init()` → create the node → `rclpy.spin()` → shutdown
-- `colcon build --symlink-install` once, then edit .py freely (changing `setup.py` needs a rebuild)
+- **package**: created with `ros2 pkg create`. Code lives in `<pkg>/<pkg>/` and programs are registered in `setup.py`.
+- **publisher**: `self.create_publisher(Type, 'topic', 10)`, then `.publish(msg)`.
+- **timer**: `self.create_timer(seconds, function)`. ROS calls you periodically.
+- Lifecycle: `rclpy.init()`, create the node, `rclpy.spin()`, shut down.
+- Run `colcon build --symlink-install` once, then edit .py files freely. Changing `setup.py` needs a rebuild.
 
-> 🤔 **Food for thought:** this node "walks with its eyes closed" — it has no idea where the turtle really is, it just counts time (that's called **open loop**).
-> If someone teleported the turtle midway, it would carry on with the plan without noticing... next mission the turtle **opens its eyes** 👀
+This node drives with its eyes closed. It has no idea where the turtle really is and only counts time, which is called **open loop**. If someone teleported the turtle halfway, it would carry on with the plan without noticing. In the next mission the turtle gets to look.
 
-## 🛠️ Troubleshooting
+## Troubleshooting
 
 | Symptom | Fix |
 |---|---|
 | `No executable found` | missing line in `setup.py` / forgot to rebuild after editing `setup.py` / forgot `source install/setup.bash` |
 | `Package 'my_turtle' not found` | forgot `source install/setup.bash` (in the terminal where you `ros2 run`) |
 | `error: option --editable not recognized` | pip setuptools too new: `pip3 install "setuptools<80"` |
-| the square is a bit crooked | normal for open loop — if it's very crooked, slow down |
-| 1 star + "teleop / ros2 topic pub detected" | teleop or `ros2 topic pub` is still running in another terminal — close them all and retry |
+| the square is a bit crooked | normal for open loop; if it's very crooked, slow down |
+| 1 star + "teleop / ros2 topic pub detected" | teleop or `ros2 topic pub` is still running in another terminal; close them all and retry |
 
-## 🏆 Side quests
+## Extras
 
-- Draw a **triangle** or a **5-pointed star** (a star turns 144° at each tip)
-- Make the turtle announce the side it's drawing: add a publisher to `/turtle1/say` (type `std_msgs/msg/String`)
+- Draw a triangle or a 5-pointed star (a star turns 144° at each tip).
+- Make the turtle announce the side it's drawing: add a publisher to `/turtle1/say` (type `std_msgs/msg/String`).
 
 ---
 
-**← Previous** [Mission 3](03-hotline.md) · **Next →** [Mission 5: Turtle Eyes](05-eyes.md)
+**Previous:** [Mission 3](03-hotline.md) · **Next:** [Mission 5: Turtle Eyes](05-eyes.md)

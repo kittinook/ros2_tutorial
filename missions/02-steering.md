@@ -1,15 +1,14 @@
-# Mission 2: Steering Wheel 🕹️
+# Mission 2: Steering Wheel
 
-> **Briefing:** The keyboard is broken! Teleop is off-limits (use it and the quest master will know 👀).
-> All you have left is **sending velocity commands by hand** with `ros2 topic pub` — do the maths and plant all the flags.
+The keyboard is broken, and teleop is off-limits this time (the quest master will notice if you use it). All you have left is sending velocity commands by hand with `ros2 topic pub`, so do the maths and touch all the flags.
 
 ![Mission 2: the turtle reached flag 1 and turned towards flag 2](../docs/images/mission-2.png)
 
-**🎯 Objectives**
+**Objectives**
 - [ ] Touch the flags in order 1 → 2 → 3
 - [ ] Drive one full circle
 
-**⭐ Stars:** ≤ 4 min = ⭐⭐⭐ · ≤ 8 min = ⭐⭐ · using teleop = ⭐ only
+**Stars:** ≤ 4 min = ⭐⭐⭐ · ≤ 8 min = ⭐⭐ · using teleop = ⭐ only
 
 ```bash
 # Terminal 1
@@ -18,9 +17,9 @@ ros2 launch turtle_quest mission.launch.py mission:=2
 
 ---
 
-## 🧠 Concept card: Twist — how robots talk about velocity
+## Twist: how robots describe velocity
 
-When you pressed arrow keys in mission 0, teleop sent messages to `/turtle1/cmd_vel`. What did it send?
+When you pressed the arrow keys in mission 0, teleop sent messages to `/turtle1/cmd_vel`. Here's what it sent:
 
 ```bash
 ros2 topic info /turtle1/cmd_vel          # Type: geometry_msgs/msg/Twist
@@ -40,27 +39,24 @@ Vector3  angular
 	float64 z
 ```
 
-`Twist` works for any robot (even 3-D drones), but a ground turtle only uses two fields:
+`Twist` works for any robot, 3-D drones included, but a turtle on the ground only uses two fields:
 
 | Field | Meaning | Unit | Positive | Negative |
 |---|---|---|---|---|
 | `linear.x` | forward speed | metres/second | forward | backward |
-| `angular.z` | turning speed | **radians**/second | turn left ↺ | turn right ↻ |
+| `angular.z` | turning speed | radians/second | turn left ↺ | turn right ↻ |
 
-**What's a radian?** The angle unit ROS uses everywhere — one full turn = 2π ≈ 6.2832 radians
+A **radian** is the angle unit ROS uses everywhere. One full turn is 2π ≈ 6.2832 radians.
 
 | degrees | 45° | 90° | 180° | 360° |
 |---|---|---|---|---|
 | radians | 0.7854 | 1.5708 | 3.1416 | 6.2832 |
 
-### ⏲️ The 1-second rule
+### The 1-second rule
 
-The turtle keeps following the last command for **1 more second**, then stops by itself (like the original turtlesim — so a crashed controller can't send the robot running off forever).
+The turtle keeps following the last command for 1 more second, then stops by itself. The original turtlesim does the same, so a crashed controller can't leave the robot running off forever.
 
-So a single `--once` message = exactly 1 second of motion:
-
-> **distance = speed × 1 s** → to move 3 metres, send `linear.x: 3.0` 🤯
-> **angle turned = turning speed × 1 s** → to turn 90°, send `angular.z: 1.5708`
+That means a single `--once` message gives exactly 1 second of motion. Distance is speed × 1 s, so to move 3 metres you send `linear.x: 3.0`. The angle turned is turning speed × 1 s, so to turn 90° you send `angular.z: 1.5708`.
 
 ---
 
@@ -70,7 +66,7 @@ So a single `--once` message = exactly 1 second of motion:
 ros2 topic pub --once /turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 1.0}}"
 ```
 
-The turtle moves 1 metre forward (watch x in the panel grow by about 1.00). Fields you leave out are 0.
+The turtle moves 1 metre forward, and x in the panel grows by about 1.00. Any field you leave out is 0.
 
 Now turn:
 
@@ -78,12 +74,11 @@ Now turn:
 ros2 topic pub --once /turtle1/cmd_vel geometry_msgs/msg/Twist "{angular: {z: 1.5708}}"
 ```
 
-90° left (th = 90°). Try `-1.5708` to turn back.
+That's 90° left (th = 90°). Send `-1.5708` to turn back.
 
-> 💡 Tired of typing? Press the up arrow to recall the last command and just edit the number.
-> Or type `ros2 topic pub --once /turtle1/cmd_vel geometry_msgs/msg/Twist ` and press `Tab` twice to get an empty template (if tab completion is enabled in your terminal)
+To save typing, press the up arrow to recall the last command and edit the number. If tab completion is enabled in your terminal, you can also type `ros2 topic pub --once /turtle1/cmd_vel geometry_msgs/msg/Twist ` and press `Tab` twice to get an empty template.
 
-## Step 2: Plan the route to the flags 🚩
+## Step 2: Plan the route to the flags
 
 If you moved the turtle in step 1, close and relaunch the mission first so it starts at (5.44, 5.44) facing right (0°).
 
@@ -93,17 +88,17 @@ If you moved the turtle in step 1, close and relaunch the mission first so it st
 | 2 | (8.5, 8.5) |
 | 3 | (2.5, 8.5) |
 
-Sketch it on paper and work out which commands to send, in order (anywhere inside the flag's circle counts).
+Sketch the route on paper and work out which commands to send, in order. Anywhere inside a flag's circle counts.
 
 <details>
-<summary>💡 Hint: flag 1</summary>
+<summary>Hint for flag 1</summary>
 
-Flag 1 is straight ahead, 8.5 − 5.44 = **3.06** m away, and the turtle already faces right. Just go forward.
+Flag 1 is straight ahead, 8.5 − 5.44 = 3.06 m away, and the turtle already faces right. Just go forward.
 
 </details>
 
 <details>
-<summary>🔓 Full route</summary>
+<summary>Full route</summary>
 
 ```bash
 P="ros2 topic pub --once /turtle1/cmd_vel geometry_msgs/msg/Twist"
@@ -114,32 +109,31 @@ $P "{angular: {z: 1.5708}}"     # turn left another 90° (now facing left)
 $P "{linear: {x: 6.0}}"         # to flag 3 (8.5 - 2.5 = 6.0)
 ```
 
-(send them one by one, waiting for the turtle to stop before the next)
+Send them one at a time and wait for the turtle to stop before the next.
 
 </details>
 
-## Step 3: Drive a circle ⭕
+## Step 3: Drive a circle
 
-Drive **and** turn at the same time and the turtle drives a circle with radius = `linear.x / angular.z`.
+If you drive and turn at the same time, the turtle drives a circle with radius `linear.x / angular.z`.
 
-But with the 1-second rule a single `--once` only lasts 1 second, not a full circle... so keep sending with `--rate`:
+The 1-second rule gets in the way here: one `--once` lasts 1 second, which isn't a full circle. So keep sending with `--rate`:
 
 ```bash
 ros2 topic pub --rate 1 /turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0}, angular: {z: 1.0}}"
 ```
 
-`--rate 1` = send it once per second, forever, until `Ctrl+C`.
+`--rate 1` sends the message once per second until you press `Ctrl+C`.
 
-A full circle is 2π radians; at 1 rad/s that takes about **6.3 seconds**, then `Ctrl+C`.
+A full circle is 2π radians, so at 1 rad/s it takes about 6.3 seconds. Then press `Ctrl+C`.
 
-> ⚠️ Watch out for the edge of the world — a 2 m radius circle needs room. Hit the edge and the turtle slides along it instead of circling.
-> (Which way is the turtle facing right now? If it turns left, which side of the turtle will the circle be on?)
+> Careful: a circle with a 2 m radius needs room. If the turtle hits the edge of the world it slides along it instead of circling. Check which way the turtle is facing first: if it turns left, which side of it will the circle be on?
 
-🎉 Mission complete!
+That completes the mission. The panel shows *Mission complete* and your stars.
 
 ---
 
-## 🕸️ System map: what you just did
+## System map
 
 ```mermaid
 flowchart LR
@@ -158,39 +152,39 @@ flowchart LR
 
 > 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
 
-- A topic can have **several publishers**. `turtlesim_plus` obeys whatever arrives on `/turtle1/cmd_vel`; it can't tell who sent it
-- So quest_master doesn't read the messages to catch teleop: it asks the ROS graph **who** publishes there (exactly what `ros2 topic info -v` shows)
-- The grey dashed box is teleop: fine in mission 0, forbidden here
+A topic can have several publishers. `turtlesim_plus` obeys whatever arrives on `/turtle1/cmd_vel` and can't tell who sent it. So quest_master doesn't read the messages to catch teleop. It asks the ROS graph who publishes there, which is exactly what `ros2 topic info -v` shows.
 
-## 🔍 Summary
+The grey dashed box is teleop: fine in mission 0, forbidden here.
 
-- Driving a mobile robot = **publishing `geometry_msgs/msg/Twist` to `cmd_vel`** — real robots like TurtleBot work exactly the same
-- `linear.x` = forward (m/s), `angular.z` = turn left (rad/s)
-- `--once` sends once · `--rate N` sends N times per second until stopped · `--times N` sends N times then exits
+## Summary
 
-## 🧩 Check yourself
+Driving a mobile robot means publishing `geometry_msgs/msg/Twist` to `cmd_vel`. Real robots like TurtleBot work exactly the same way. `linear.x` is forward speed in m/s and `angular.z` is turning left in rad/s.
+
+`--once` sends one message, `--rate N` sends N per second until you stop it, and `--times N` sends N messages and exits.
+
+## Check yourself
 
 <details>
 <summary>1. You send <code>{linear: {x: 2.0}, angular: {z: 3.1416}}</code> once. Where does the turtle end up?</summary>
 
-It drives half a circle (π = 180° in 1 s) with radius 2/3.1416 ≈ 0.64 m,
-ending 2 × 0.64 ≈ 1.27 m to the turtle's left, facing the opposite way
+It drives half a circle (π = 180° in 1 s) with radius 2/3.1416 ≈ 0.64 m.
+It ends up 2 × 0.64 ≈ 1.27 m to the turtle's left, facing the opposite way.
 
 </details>
 
 <details>
 <summary>2. How does the quest master know you're using teleop?</summary>
 
-Run `ros2 topic info -v /turtle1/cmd_vel` while teleop is running: you'll see a publisher named `teleop_turtle`.
-quest_master asks ROS 2 the same question every 0.1 s (`ros2 topic pub` shows up as `_ros2cli_...`)
+Run `ros2 topic info -v /turtle1/cmd_vel` while teleop is running and you'll see a publisher named `teleop_turtle`.
+quest_master asks ROS 2 the same question every 0.1 s. (`ros2 topic pub` shows up as `_ros2cli_...`.)
 
 </details>
 
-## 🏆 Side quests
+## Extras
 
-- Draw a figure 8: one circle left, then one circle right (negative `angular.z`)
-- Change the pen colour before drawing — see the next mission 😉
+- Draw a figure 8: one circle left, then one circle right (negative `angular.z`).
+- Change the pen colour before drawing. The next mission shows how.
 
 ---
 
-**← Previous** [Mission 1](01-spy.md) · **Next →** [Mission 3: Service Hotline](03-hotline.md)
+**Previous:** [Mission 1](01-spy.md) · **Next:** [Mission 3: Service Hotline](03-hotline.md)

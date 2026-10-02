@@ -1,16 +1,14 @@
-# Mission 10: Long Reach 🎯
+# Mission 10: Long Reach
 
-> **Briefing:** Six small flags pop up around the turtle, one after another, at random spots.
-> Each one has to be touched by a gripper, and they're tiny (0.25 m). Guessing angles like in mission 9 won't cut it —
-> your node has to **compute** the joint angles from a target position. That's called **inverse kinematics**.
+Six small flags pop up around the turtle, one after another, at random spots. A gripper has to touch each one, and they're tiny (0.25 m), so guessing angles like in mission 9 won't work. Your node has to compute the joint angles from a target position, which is called **inverse kinematics**.
 
 ![Mission 10: the left arm reaches for a flag while the right arm stays tucked in](../docs/images/mission-10.png)
 
-**🎯 Objectives**
+**Objectives**
 - [ ] Touch the flags in order (6 of them)
 - [ ] Move the arms with your own node
 
-**⭐ Stars:** ≤ 6 s = ⭐⭐⭐ · ≤ 20 s = ⭐⭐ — the turtle must stay parked; the clock starts when an arm starts moving
+**Stars:** ≤ 6 s = ⭐⭐⭐ · ≤ 20 s = ⭐⭐ · the turtle must stay parked; the clock starts when an arm starts moving
 
 ```bash
 # Terminal 1
@@ -19,19 +17,18 @@ ros2 launch turtle_quest mission.launch.py mission:=10
 
 ---
 
-## 🧠 Concept card: forward vs. inverse kinematics
+## Forward and inverse kinematics
 
 | | Question | Difficulty |
 |---|---|---|
-| **forward kinematics (FK)** | "My joints are at (q1, q2). Where is the gripper?" | easy: plug into the formula from mission 9 |
-| **inverse kinematics (IK)** | "I want the gripper *there*. Which (q1, q2)?" | harder: solve the formula backwards |
+| forward kinematics (FK) | "My joints are at (q1, q2). Where is the gripper?" | easy: plug into the formula from mission 9 |
+| inverse kinematics (IK) | "I want the gripper *there*. Which (q1, q2)?" | harder: solve the formula backwards |
 
-Robots are commanded in joint space, but jobs are described in the world ("touch that flag") — so IK is everywhere in manipulation.
+Robots are commanded in joint space, but jobs are described in the world ("touch that flag"). That's why IK shows up everywhere in manipulation.
 
-## 🧠 Concept card: coordinate frames
+## Coordinate frames
 
-The flag comes in **world** coordinates, but the arm formulas live in the **turtle frame** (x forward, y left), measured from the **shoulder**.
-So there are two hops:
+The flag arrives in world coordinates, but the arm formulas work in the turtle frame (x forward, y left), measured from the shoulder. So there are two conversions:
 
 ```text
  world (x, y)  --rotate by -theta-->  turtle frame (x_t, y_t)  --subtract shoulder-->  shoulder frame (dx, dy)
@@ -45,11 +42,11 @@ y_t = -sin(theta) * dx + cos(theta) * dy
 # turtle frame -> shoulder frame: the left shoulder sits at (0, +0.3), the right at (0, -0.3)
 ```
 
-(In this mission the turtle sits at the centre facing right, so theta = 0 — but write it properly anyway: you'll need it when the turtle drives in mission 12.)
+In this mission the turtle sits at the centre facing right, so theta = 0. Write the rotation properly anyway, because you'll need it once the turtle drives in mission 12.
 
-## 🧠 Concept card: solving a 2-link arm
+## Solving a 2-link arm
 
-From the shoulder, the target is at (dx, dy), distance d. The upper arm (L1), the forearm (L2) and the line to the target form a **triangle**:
+Seen from the shoulder, the target is at (dx, dy), a distance d away. The upper arm (L1), the forearm (L2) and the line to the target form a triangle:
 
 ```text
                  target
@@ -63,16 +60,15 @@ From the shoulder, the target is at (dx, dy), distance d. The upper arm (L1), th
                shoulder
 ```
 
-1. **Elbow** — the law of cosines gives the elbow angle directly:
+1. The elbow comes straight from the law of cosines:
 
    ```text
    cos(q2) = (d² - L1² - L2²) / (2 · L1 · L2)
    ```
 
-   If that number is outside −1…1 the target is **out of reach** (too far, or too close to the shoulder).
-   `acos` gives two answers, +q2 and −q2: the elbow can bend to either side. We bend it **outwards** (left arm: −q2, right arm: +q2) so the arms don't fold across the body.
+   If that number is outside −1…1, the target is out of reach (too far, or too close to the shoulder). `acos` gives two answers, +q2 and −q2, because the elbow can bend either way. Bend it outwards (left arm: −q2, right arm: +q2) so the arms don't fold across the body.
 
-2. **Shoulder** — point at the target, then correct for the bend of the elbow:
+2. For the shoulder, point at the target and then correct for the bend in the elbow:
 
    ```text
    q1 = atan2(dy, dx) - atan2(L2 · sin(q2),  L1 + L2 · cos(q2))
@@ -80,7 +76,7 @@ From the shoulder, the target is at (dx, dy), distance d. The upper arm (L1), th
 
 ---
 
-## 🕸️ System map: what you'll build
+## System map
 
 ```mermaid
 flowchart LR
@@ -105,15 +101,13 @@ flowchart LR
 
 > 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
 
-- From the outside it's simple: two topics in, one out
-- The interesting part is **inside**: a pipeline of plain Python functions with no ROS in them, so you can test them on their own (you will, in Step 1)
-- Only the last step builds a ROS message. Keeping the maths apart from the ROS plumbing is good design
+From the outside the node is simple: two topics in, one out. The interesting part is inside. It's a pipeline of plain Python functions with no ROS in them, so you can test them on their own, which you'll do in Step 1. Only the last step builds a ROS message. Keeping the maths apart from the ROS plumbing is a habit worth having.
 
 ---
 
 ## Step 1: The maths as Python functions
 
-Create `src/my_turtle/my_turtle/arm_reach.py` with the full node below. The two helper functions at the top are the whole concept card above, in code:
+Create `src/my_turtle/my_turtle/arm_reach.py` with the full node below. The two helper functions at the top are the previous two sections written as code:
 
 ```python
 # my_turtle/my_turtle/arm_reach.py
@@ -203,7 +197,7 @@ if __name__ == '__main__':
     main()
 ```
 
-Before running the node, **test the maths on its own**. Mission 9's flag 1 was at (1.2, 0.9) in the turtle frame — do you get the same angles as the mission 9 solution?
+Test the maths on its own before you run the node. Mission 9's flag 1 was at (1.2, 0.9) in the turtle frame. Do you get the same angles as the mission 9 solution?
 
 ```bash
 cd ~/turtle_quest/src/my_turtle/my_turtle
@@ -214,49 +208,48 @@ python3 -c "from arm_reach import inverse_kinematics as ik; print(ik(1.2, 0.9, '
 (0.89..., -0.93...) (0.0, -0.0) None
 ```
 
-Flag 1 ✔️, a fully stretched arm gives (0, 0) ✔️, and 3 m away is out of reach ✔️
+Flag 1 matches, a fully stretched arm gives (0, 0), and a point 3 m away is out of reach.
 
 ## Step 2: Run it
 
-Add `'arm_reach = my_turtle.arm_reach:main',` to `setup.py`, build, source, and:
+Add `'arm_reach = my_turtle.arm_reach:main',` to `setup.py`, build, source, and run:
 
 ```bash
 ros2 run my_turtle arm_reach
 ```
 
-The arms snap from flag to flag 🎉
+The arms snap from flag to flag. The panel shows *Mission complete* and your stars.
 
 ---
 
-## 🔍 Summary
+## Summary
 
-- **FK**: joint angles → gripper position (one formula). **IK**: gripper position → joint angles (solve the triangle)
-- A 2-link planar arm has up to **two** IK solutions (elbow left / right) and **none** if the target is out of reach
-- Always convert into the right **frame** first: world → robot → shoulder
-- In ROS 2 these frames are managed by **tf2**, and bigger arms use solvers like MoveIt — but the idea is exactly this
+Forward kinematics takes joint angles and gives you the gripper position, with one formula. Inverse kinematics goes the other way by solving the triangle. A 2-link planar arm has up to two IK solutions (elbow bent left or right), and none if the target is out of reach.
 
-## 🧩 Check yourself
+Always convert into the right frame first: world, then robot, then shoulder. In ROS 2 these frames are managed by **tf2**, and bigger arms use solvers like MoveIt, but the idea is the same as what you just wrote.
+
+## Check yourself
 
 <details>
 <summary>1. Which points can the left gripper reach at all?</summary>
 
-Everything between 0.1 m (= L1 − L2) and 1.5 m (= L1 + L2) from the left shoulder — a ring ("annulus"). In practice the elbow limit (±2.7 rad) makes the inner edge a bit bigger.
+Everything between 0.1 m (= L1 − L2) and 1.5 m (= L1 + L2) from the left shoulder, which is a ring (an "annulus"). In practice the elbow limit (±2.7 rad) makes the inner edge a bit bigger.
 
 </details>
 
 <details>
 <summary>2. What would happen without the <code>atan2(sin, cos)</code> line that wraps q1?</summary>
 
-q1 could come out as e.g. 4.0 rad, outside the shoulder limit of ±π, and the simulator would clamp it to π — the arm would point the wrong way. Wrapping gives the same direction as −2.28 rad, which is allowed.
+q1 could come out as, say, 4.0 rad, outside the shoulder limit of ±π. The simulator would clamp it to π and the arm would point the wrong way. Wrapping gives the same direction as −2.28 rad, which is allowed.
 
 </details>
 
-## 🏆 Side quests
+## Extras
 
-- **Faster:** `/mission/goals` lists *all* remaining flags. Instead of tucking the idle arm in, send it to the next flag on its side already, so it's waiting there
-- Try the other elbow solution (flip the sign of q2) and watch the arms bend inwards
-- Write `forward_kinematics(q1, q2, side)` and log the difference to `/turtle1/left_arm/tip` — it should be ~0
+- Make it faster. `/mission/goals` lists all remaining flags, so instead of tucking the idle arm in, send it ahead to the next flag on its side and have it waiting there.
+- Try the other elbow solution (flip the sign of q2) and watch the arms bend inwards.
+- Write `forward_kinematics(q1, q2, side)` and log the difference to `/turtle1/left_arm/tip`. It should be about 0.
 
 ---
 
-**← Previous** [Mission 9](09-arm-day.md) · **Next →** [Mission 11: Pick & Place](11-pick-place.md)
+**Previous:** [Mission 9](09-arm-day.md) · **Next:** [Mission 11: Pick & Place](11-pick-place.md)

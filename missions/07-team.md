@@ -1,17 +1,16 @@
-# Mission 7: Turtle Team 🐢🐢
+# Mission 7: Turtle Team
 
-> **Briefing:** The pizza shop is booming — one turtle can't keep up! `turtle2` has joined the team.
-> But you don't want to write a whole new program for the second turtle — ROS 2 has tools to **reuse the same node** for as many robots as you like.
+Business is good and one turtle can't keep up, so `turtle2` has joined the team. You don't want to write a second program for it. ROS 2 lets you reuse the same node for as many robots as you like.
 
 ![Mission 7: turtle1 and turtle2 hunt pizzas together](../docs/images/mission-7.png)
 
-**🎯 Objectives**
+**Objectives**
 - [ ] Run nodes in the `/turtle1` and `/turtle2` namespaces
 - [ ] Change a parameter while the node is running
 - [ ] Each turtle eats at least 3 pizzas
 - [ ] 10 pizzas eaten in total (the map keeps getting restocked)
 
-**⭐ Stars:** ≤ 40 s = ⭐⭐⭐ · ≤ 90 s = ⭐⭐ — the clock starts when the turtles start moving
+**Stars:** ≤ 40 s = ⭐⭐⭐ · ≤ 90 s = ⭐⭐ · the clock starts when the turtles start moving
 
 ```bash
 # Terminal 1
@@ -20,17 +19,17 @@ ros2 launch turtle_quest mission.launch.py mission:=7
 
 ---
 
-## 🧠 Concept card: 3 tools for reusing a node
+## Three tools for reusing a node
 
 | Tool | Solves | Example |
 |---|---|---|
-| **namespace** | the same node talks to different robots | `/turtle1/scan` vs `/turtle2/scan` |
-| **parameter** | values you want to tune without editing code | top speed, starting patrol point |
-| **launch file** | start many nodes with one command | 2 hunters, two namespaces, different values |
+| namespace | the same node talks to different robots | `/turtle1/scan` vs `/turtle2/scan` |
+| parameter | values you want to tune without editing code | top speed, starting patrol point |
+| launch file | start many nodes with one command | 2 hunters, two namespaces, different values |
 
 ---
 
-## 🕸️ System map: what you'll build
+## System map
 
 ```mermaid
 flowchart TB
@@ -65,18 +64,19 @@ flowchart TB
 
 > 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
 
-- **One** executable, started **twice**. Each copy lives in its own namespace, so `'cmd_vel'` in the code becomes `/turtle1/cmd_vel` in one copy and `/turtle2/cmd_vel` in the other
-- Each copy has its own **parameters** (grey): same code, different settings
-- `ros2 param set` reaches into one running node through services every node offers (the `.../set_parameters` family you skipped in mission 3). The node then announces the change on `/parameter_events`, and quest_master hears it
-- The launch file starts everything with the right namespaces and parameters, in one command
+There is one executable, started twice. Each copy lives in its own namespace, so `'cmd_vel'` in the code becomes `/turtle1/cmd_vel` in one copy and `/turtle2/cmd_vel` in the other. Each copy also has its own parameters (grey): same code, different settings.
+
+`ros2 param set` reaches into one running node through services that every node offers (the `.../set_parameters` family you skipped in mission 3). The node then announces the change on `/parameter_events`, and quest_master hears it.
+
+The launch file starts everything with the right namespaces and parameters in one command.
 
 ---
 
-## Step 1: Namespaces — take the turtle's name out of the code
+## Step 1: Namespaces take the turtle's name out of the code
 
-Right now `pizza_hunter.py` uses **absolute** names (starting with `/`), e.g. `'/turtle1/scan'` — hard-wired to turtle1.
+Right now `pizza_hunter.py` uses **absolute** names, which start with `/`. `'/turtle1/scan'` is hard-wired to turtle1.
 
-With **relative** names (no leading `/`), e.g. `'scan'`, ROS prepends the **node's namespace** for you:
+With **relative** names (no leading `/`), such as `'scan'`, ROS prepends the node's namespace for you:
 
 | Node namespace | `'scan'` becomes |
 |---|---|
@@ -109,14 +109,13 @@ ros2 node list
 # /turtle2/pizza_hunter      ← same node, two bodies!
 ```
 
-Both turtles hunt ✅ but notice... they patrol nose-to-tail like a parade, because both start at the same patrol point 🐢🐢
-(`Ctrl+C` both before the next step)
+Both turtles hunt, but they patrol nose-to-tail like a parade, because both start at the same patrol point. Stop both with `Ctrl+C` before the next step.
 
-> ⚠️ After this change, replaying mission 6 needs `--ros-args -r __ns:=/turtle1` too
+> Note: after this change, replaying mission 6 needs `--ros-args -r __ns:=/turtle1` too.
 
-## Step 2: Parameters — knobs you can turn from outside 🎛️
+## Step 2: Parameters you can change from outside
 
-Move the values worth tuning into **parameters**: declare them in `__init__` with `declare_parameter(name, default)` and read them with `get_parameter(name).value`.
+Move the values worth tuning into **parameters**. Declare them in `__init__` with `declare_parameter(name, default)` and read them with `get_parameter(name).value`.
 
 Replace `pizza_hunter.py` with:
 
@@ -217,7 +216,7 @@ Set a parameter at start-up with `-p name:=value`:
 ros2 run my_turtle pizza_hunter --ros-args -r __ns:=/turtle2 -p patrol_start:=2
 ```
 
-and **change it while the node runs**, from another terminal:
+and change it while the node runs, from another terminal:
 
 ```bash
 ros2 param list /turtle2/pizza_hunter               # which parameters exist
@@ -225,9 +224,9 @@ ros2 param get /turtle2/pizza_hunter max_speed      # current value
 ros2 param set /turtle2/pizza_hunter max_speed 2.5  # change it! turtle2 speeds up immediately
 ```
 
-## Step 3: Launch files — the whole team with one command 🚀
+## Step 3: A launch file for the whole team
 
-Opening terminals one by one is tiring... write a **launch file** (it's plain Python). Create the folder `src/my_turtle/launch/` and in it `team.launch.py`:
+Opening terminals one by one gets old fast. Write a **launch file** instead (it's plain Python). Create the folder `src/my_turtle/launch/` and in it `team.launch.py`:
 
 ```python
 # my_turtle/launch/team.launch.py
@@ -252,7 +251,7 @@ def generate_launch_description():
     ])
 ```
 
-`setup.py` must also install the `launch/` folder — add the imports at the top and one line in `data_files`:
+`setup.py` must also install the `launch/` folder. Add the imports at the top and one line in `data_files`:
 
 ```python
 import os
@@ -269,9 +268,9 @@ from setuptools import find_packages, setup
     ],
 ```
 
-> (Your `from setuptools import ...` line may look slightly different — leave it, just add `import os` and `from glob import glob` above it)
+Your `from setuptools import ...` line may look slightly different. Leave it alone and just add `import os` and `from glob import glob` above it.
 
-`setup.py` changed → rebuild, then start the team:
+Since `setup.py` changed, rebuild, then start the team:
 
 ```bash
 cd ~/turtle_quest
@@ -280,47 +279,46 @@ source install/setup.bash
 ros2 launch my_turtle team.launch.py
 ```
 
-While the team is hunting, don't forget objective 2:
+While the team is hunting, take care of objective 2:
 
 ```bash
 ros2 param set /turtle1/pizza_hunter max_speed 2.5
 ```
 
-🎉 Mission complete!
+The panel shows *Mission complete* and your stars.
 
 ---
 
-## 🔍 Summary
+## Summary
 
 | | in code | with `ros2 run` | in a launch file |
 |---|---|---|---|
 | namespace | use relative names (`'scan'`) | `--ros-args -r __ns:=/turtle1` | `namespace='turtle1'` |
 | parameter | `declare_parameter` + `get_parameter` | `--ros-args -p max_speed:=2.0` | `parameters=[{'max_speed': 2.0}]` |
 
-- Tune parameters live: `ros2 param list / get / set`
-- Launch files live in `<pkg>/launch/` and must be added to `data_files` in `setup.py`
-- Real robot fleets use exactly this pattern: one codebase + a namespace per robot + parameters per robot
+Tune parameters live with `ros2 param list`, `get` and `set`. Launch files live in `<pkg>/launch/` and must be added to `data_files` in `setup.py`.
 
-## 🧩 Check yourself
+Real robot fleets use this same pattern: one codebase, a namespace per robot and parameters per robot.
+
+## Check yourself
 
 <details>
 <summary>1. You forget to change <code>'/turtle1/eat'</code> to <code>'eat'</code> but fix every other line. What happens?</summary>
 
-turtle2 chases pizzas just fine, but when it orders food it calls `/turtle1/eat` → **turtle1 eats** (if a pizza happens to be in turtle1's green cone) and turtle2 never eats a thing 😂
-`ros2 node info /turtle2/pizza_hunter` shows which names a node is connected to
+turtle2 chases pizzas just fine, but when it orders food it calls `/turtle1/eat`. So turtle1 eats (if a pizza happens to be in turtle1's green cone) and turtle2 never eats a thing. `ros2 node info /turtle2/pizza_hunter` shows which names a node is connected to.
 
 </details>
 
 <details>
 <summary>2. Why is <code>max_speed</code> read every loop but <code>patrol_start</code> only once?</summary>
 
-`patrol_start` only matters at start-up (changing it later means nothing), while `max_speed` should be tunable live. If you read it once in `__init__` and kept it, `ros2 param set` would change the value inside the node but your code would never read the new one
+`patrol_start` only matters at start-up, and changing it later means nothing. `max_speed` should be tunable live. If you read it once in `__init__` and kept it, `ros2 param set` would change the value inside the node but your code would never read the new one.
 
 </details>
 
-## 🏆 Side quests
+## Extras
 
-- Add an `eat_distance` parameter and tune it live — does the turtle eat more reliably or miss more?
+- Add an `eat_distance` parameter and tune it live. Does the turtle eat more reliably, or miss more?
 - Put the mission in your launch file too, so one command starts everything:
 
 ```python
@@ -339,4 +337,4 @@ mission = IncludeLaunchDescription(
 
 ---
 
-**← Previous** [Mission 6](06-pizza-hunter.md) · **Next →** [Mission 8: Boss!](08-boss-delivery.md)
+**Previous:** [Mission 6](06-pizza-hunter.md) · **Next:** [Mission 8: Boss!](08-boss-delivery.md)

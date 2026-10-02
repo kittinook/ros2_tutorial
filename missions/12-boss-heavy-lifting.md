@@ -1,16 +1,14 @@
-# Mission 12 (Boss): Heavy Lifting 🏗️
+# Mission 12 (boss): Heavy Lifting
 
-> **Briefing:** Two heavy **crates** must go to DROP-OFF. They're too heavy for one arm —
-> the turtle has to drive up, grip a crate with **both** grippers at once, drive it to the zone and set it down.
-> Driving *and* manipulating together is called **mobile manipulation**, and it's the final exam 💪
+Two heavy crates have to go to DROP-OFF, and they're too heavy for one arm. The turtle has to drive up, grip a crate with both grippers at once, drive it to the zone and set it down. Driving and manipulating at the same time is called **mobile manipulation**, and it's the final exam.
 
 ![Mission 12: the turtle carries a crate with both arms towards DROP-OFF](../docs/images/mission-12.png)
 
-**🎯 Objectives**
+**Objectives**
 - [ ] Deliver 2 crates (set down inside DROP-OFF)
-- [ ] Drive the turtle with your own node (no teleporting!)
+- [ ] Drive the turtle with your own node (no teleporting)
 
-**⭐ Stars:** ≤ 25 s = ⭐⭐⭐ · ≤ 60 s = ⭐⭐ — the clock starts when the turtle or an arm starts moving
+**Stars:** ≤ 25 s = ⭐⭐⭐ · ≤ 60 s = ⭐⭐ · the clock starts when the turtle or an arm starts moving
 
 ```bash
 # Terminal 1
@@ -19,29 +17,29 @@ ros2 launch turtle_quest mission.launch.py mission:=12
 
 ---
 
-## 📦 Crate rules
+## Crate rules
 
 | Rule | Detail |
 |---|---|
 | size | 0.8 × 0.8 m |
-| gripping | a gripper "touches" the crate when its tip is within **0.65 m** of the crate's centre; closing it then succeeds |
-| too heavy | held by **one** gripper the crate doesn't move (the service tells you: *too heavy for one arm*) |
-| lifted | held by **both** grippers of the same turtle, the crate sits exactly halfway between the two tips and moves with them |
-| slipping | if the two tips get more than **1.5 m** apart, the crate slips and both grippers open |
-| delivered | crate centre inside DROP-OFF (centre (9.38, 9.38), radius 1.2) **and** no gripper holding it |
+| gripping | a gripper "touches" the crate when its tip is within 0.65 m of the crate's centre; closing it then succeeds |
+| too heavy | held by one gripper the crate doesn't move (the service tells you: *too heavy for one arm*) |
+| lifted | held by both grippers of the same turtle, the crate sits exactly halfway between the two tips and moves with them |
+| slipping | if the two tips get more than 1.5 m apart, the crate slips and both grippers open |
+| delivered | crate centre inside DROP-OFF (centre (9.38, 9.38), radius 1.2) and no gripper holding it |
 
-## 🗺️ What you have to work with
+## What you have to work with
 
 | Name | Kind | Type | Used for |
 |---|---|---|---|
 | `/mission/items` | topic (in) | `geometry_msgs/msg/PoseArray` | world positions of the crates not delivered yet |
 | `/turtle1/pose` | topic (in) | `turtlesim/msg/Pose` | the turtle |
-| `/turtle1/left_arm/tip`, `/turtle1/right_arm/tip` | topic (in) | `geometry_msgs/msg/Point` | where the grippers are → the midpoint is where a lifted crate is |
+| `/turtle1/left_arm/tip`, `/turtle1/right_arm/tip` | topic (in) | `geometry_msgs/msg/Point` | where the grippers are; a lifted crate sits at their midpoint |
 | `/turtle1/cmd_vel` | topic (out) | `geometry_msgs/msg/Twist` | drive |
 | `/turtle1/joint_command` | topic (out) | `sensor_msgs/msg/JointState` | arm posture |
 | `/turtle1/left_gripper`, `/turtle1/right_gripper` | service | `std_srvs/srv/SetBool` | grip / let go |
 
-### 🕸️ System map
+### System map
 
 ```mermaid
 flowchart LR
@@ -71,13 +69,11 @@ flowchart LR
 
 > 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
 
-One node, two control loops (driving and arms) with a state machine on top — built almost entirely from parts you wrote in missions 5, 10 and 11.
+It's one node with two control loops (driving and arms) and a state machine on top, built almost entirely from parts you wrote in missions 5, 10 and 11.
 
-## 🧠 The plan
+## The plan
 
-One trick makes this much simpler: **keep the arms in one fixed "forklift" posture the whole time** —
-both grippers 1.0 m in front of the turtle, 0.35 m left and right of the middle (use your IK from mission 10!).
-Then "put the grippers around the crate" just means "**park the turtle 1.0 m from the crate, facing it**" — a driving problem you already know.
+One trick makes this much simpler: keep the arms in one fixed "forklift" posture the whole time, with both grippers 1.0 m in front of the turtle and 0.35 m left and right of the middle. Your IK from mission 10 gives you the angles. Getting the grippers around a crate then just means parking the turtle 1.0 m from it, facing it. You've solved that driving problem before.
 
 ```mermaid
 stateDiagram-v2
@@ -169,14 +165,14 @@ if __name__ == '__main__':
     main()
 ```
 
-Add `'crate_mover = my_turtle.crate_mover:main',` to `setup.py` → build → source → `ros2 run my_turtle crate_mover`
+Add `'crate_mover = my_turtle.crate_mover:main',` to `setup.py`, build, source, and run `ros2 run my_turtle crate_mover`.
 
-> 💡 **Build it in stages:** TODOs 1-4 first and check the arms take the forklift posture → then 6 and watch the turtle park in front of a crate → then 5 + 7 → then 8 + 9.
+Build it in stages. Do TODOs 1-4 first and check that the arms take the forklift posture. Then add 6 and watch the turtle park in front of a crate. Then 5 and 7, and finally 8 and 9.
 
-## 💡 Hints (open only when stuck)
+## Hints (open only when stuck)
 
 <details>
-<summary>TODO 4: the forklift posture</summary>
+<summary>Hint for TODO 4: the forklift posture</summary>
 
 ```python
 cmd = JointState()
@@ -188,9 +184,9 @@ self.joint_pub.publish(cmd)
 </details>
 
 <details>
-<summary>TODO 6: parking in front of the crate</summary>
+<summary>Hint for TODO 6: parking in front of the crate</summary>
 
-Mission 5's controller, but aim for a distance of `REACH` instead of 0, and allow reversing a little if too close:
+It's mission 5's controller, but aim for a distance of `REACH` instead of 0, and allow a little reversing if the turtle gets too close:
 
 ```python
 x, y = min(self.crates, key=lambda c: math.hypot(c[0] - self.pose.x, c[1] - self.pose.y))
@@ -206,18 +202,17 @@ if abs(distance - REACH) < 0.06 and abs(error) < 0.05:
 </details>
 
 <details>
-<summary>TODOs 7-9: grip, carry, back off</summary>
+<summary>Hint for TODOs 7-9: grip, carry, back off</summary>
 
 - grip: `all(f.done() for f in self.futures)` then `all(f.result().success for f in self.futures)`
-- carry: the crate is at the midpoint of `self.tips['left']` and `self.tips['right']`; drive towards `DROPOFF` (the crate travels 1 m ahead of the turtle, so it gets there first) and release when the crate is within ~0.4 m of the zone centre
+- carry: the crate is at the midpoint of `self.tips['left']` and `self.tips['right']`. Drive towards `DROPOFF` (the crate travels 1 m ahead of the turtle, so it gets there first) and release when the crate is within about 0.4 m of the zone centre.
 - backoff: `cmd.linear.x = -1.0` until `self.now() >= self.backoff_until`
 
 </details>
 
-> 🧩 There's no full file to unlock here, on purpose: the hints above cover every TODO.
-> Still stuck? Ask your instructor to demo the reference solution, then write your own version.
+> Note: there's no full solution file to unlock here, on purpose. The hints above cover every TODO. If you're still stuck, ask your instructor to demo the reference solution, then write your own version.
 
-🏆 **Final boss defeated! You finished Turtle Quest!**
+That's the final boss and the end of Turtle Quest. Check your total:
 
 ```bash
 ros2 run turtle_quest progress   # out of 39 stars, how many did you get?
@@ -225,21 +220,20 @@ ros2 run turtle_quest progress   # out of 39 stars, how many did you get?
 
 ---
 
-## 🏗️ Design challenge: split it up
+## Design challenge: split it up
 
-`crate_mover` does everything in one node. Real robot software would split it into a **behaviour** node (just the state machine)
-on top of reusable **skill** nodes — see pattern 4 in [ARCHITECTURE.md](../ARCHITECTURE.md#pattern-4-split-big-jobs-into-small-nodes) for the design. Try it:
+`crate_mover` does everything in one node. Real robot software would split it into a behaviour node (just the state machine) on top of reusable skill nodes. Pattern 4 in [ARCHITECTURE.md](../ARCHITECTURE.md#pattern-4-split-big-jobs-into-small-nodes) describes the design. Try it:
 
-1. Write `base_controller`: subscribes to `/turtle1/pose` and `/turtle1/base_goal` (`geometry_msgs/msg/Point`), publishes `/turtle1/cmd_vel`. It's your mission 5 controller with a different input
+1. Write `base_controller`. It subscribes to `/turtle1/pose` and `/turtle1/base_goal` (`geometry_msgs/msg/Point`) and publishes `/turtle1/cmd_vel`. It's your mission 5 controller with a different input.
 2. Test it on its own: `ros2 topic pub --once /turtle1/base_goal geometry_msgs/msg/Point "{x: 2.0, y: 2.0}"`
-3. Do the same for `arm_controller`: a world point in, IK, `joint_command` out
-4. Shrink `crate_mover` to a pure state machine that publishes goals and calls the grippers, and start all three nodes with one launch file
+3. Do the same for `arm_controller`: a world point in, IK, `joint_command` out.
+4. Shrink `crate_mover` to a pure state machine that publishes goals and calls the grippers, and start all three nodes with one launch file.
 
-Was it easier or harder to change things afterwards? That trade-off is what software architecture is about.
+Afterwards, was it easier or harder to change things? That trade-off is what software architecture is about.
 
 ---
 
-## 🎓 What you learned in Part 2
+## What you learned in Part 2
 
 | Skill | Missions |
 |---|---|
@@ -251,16 +245,16 @@ Was it easier or harder to change things afterwards? That trade-off is what soft
 | reusing your own Python modules across nodes | 11, 12 |
 | mobile manipulation: driving + two-arm coordination | 12 |
 
-## 🚀 Where next?
+## Where next?
 
-- **tf2** — ROS 2's system for coordinate frames (what you did by hand with `to_turtle_frame`): [tf2 tutorials](https://docs.ros.org/en/humble/Tutorials/Intermediate/Tf2/Tf2-Main.html)
-- **URDF + RViz** — describe a real robot's links and joints, and see `joint_states` come alive in 3-D
-- **MoveIt 2** — IK, motion planning and collision avoidance for real arms
-- **ros2_control** — how `joint_command`-style interfaces talk to real motors
-- **Nav2** — the grown-up version of missions 5, 6 and 8 (it uses `cmd_vel` too!)
-- **C++ nodes** — same concepts, other language: [Writing a simple publisher and subscriber (C++)](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Cpp-Publisher-And-Subscriber.html)
-- **Challenge your friends** — launch with the same `seed:=<number>` and race, or design a mission of your own (see [TEACHER.md](../TEACHER.md#writing-a-new-mission))
+- tf2: ROS 2's system for coordinate frames, which you did by hand with `to_turtle_frame`. See the [tf2 tutorials](https://docs.ros.org/en/humble/Tutorials/Intermediate/Tf2/Tf2-Main.html).
+- URDF and RViz: describe a real robot's links and joints, and watch `joint_states` move a 3-D model.
+- MoveIt 2: IK, motion planning and collision avoidance for real arms.
+- ros2_control: how `joint_command`-style interfaces talk to real motors.
+- Nav2: the full-size version of missions 5, 6 and 8. It uses `cmd_vel` too.
+- C++ nodes: the same concepts in another language. Start with [Writing a simple publisher and subscriber (C++)](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Cpp-Publisher-And-Subscriber.html).
+- Racing your friends: launch with the same `seed:=<number>` and compare times, or design a mission of your own (see [TEACHER.md](../TEACHER.md#writing-a-new-mission)).
 
 ---
 
-**← Previous** [Mission 11](11-pick-place.md) · **Home** [README](../README.md)
+**Previous:** [Mission 11](11-pick-place.md) · **Home:** [README](../README.md)

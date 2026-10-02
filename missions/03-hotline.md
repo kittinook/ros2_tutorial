@@ -1,15 +1,14 @@
-# Mission 3: Service Hotline ☎️
+# Mission 3: Service Hotline
 
-> **Briefing:** Three pizzas sit in three far corners of the map — driving there is a slog...
-> Good news: the simulator offers **special services** you can call — spawn turtles, teleport, eat! Use them well and this takes just a few commands.
+Three pizzas sit in three far corners of the map, and driving to each one is a slog. The simulator offers services you can call to spawn turtles, teleport and eat, and with those the job takes a handful of commands.
 
 ![Mission 3: buddy has been spawned, turtle1 teleported to the top-left pizza and ate it](../docs/images/mission-3.png)
 
-**🎯 Objectives**
+**Objectives**
 - [ ] Spawn a new turtle named `buddy`
-- [ ] turtle1 eats all 3 pizzas — at (1.5, 9.0), (9.0, 1.5), (1.5, 1.5)
+- [ ] turtle1 eats all 3 pizzas, at (1.5, 9.0), (9.0, 1.5) and (1.5, 1.5)
 
-**⭐ Stars:** ≤ 4 min = ⭐⭐⭐ · ≤ 8 min = ⭐⭐
+**Stars:** ≤ 4 min = ⭐⭐⭐ · ≤ 8 min = ⭐⭐
 
 ```bash
 # Terminal 1
@@ -18,10 +17,9 @@ ros2 launch turtle_quest mission.launch.py mission:=3
 
 ---
 
-## 🧠 Concept card: services — call and wait for the answer
+## Services: ask and wait for the answer
 
-A topic is like **radio / a group chat**: messages flow, nobody replies.
-Sometimes you want an **answer**: "please spawn a turtle — what's its name?" That's a **service**.
+A topic is like radio or a group chat. Messages flow and nobody replies. Sometimes you need an answer, though: "please spawn a turtle, and tell me its name." For that ROS 2 has the **service**.
 
 ```mermaid
 sequenceDiagram
@@ -47,13 +45,13 @@ sequenceDiagram
 ros2 service list
 ```
 
-Lots of services! Some belong to the world (`/spawn_turtle`, `/spawn_pizza`, `/clear` ...), others to each turtle (`/turtle1/eat`, `/turtle1/teleport_absolute` ...).
+There are a lot. Some belong to the world (`/spawn_turtle`, `/spawn_pizza`, `/clear` ...) and others to each turtle (`/turtle1/eat`, `/turtle1/teleport_absolute` ...).
 
-> (The ones ending in `/describe_parameters`, `/get_parameters` ... exist on every node — they're about parameters, which you'll meet in mission 7. Skip them for now.)
+The ones ending in `/describe_parameters`, `/get_parameters` ... exist on every node. They're for parameters, which come up in mission 7, so skip them for now.
 
-## Step 2: Spawn a friend 🐢
+## Step 2: Spawn a friend
 
-Before calling, find out which **form (type)** the service uses:
+Before calling a service, find out which type (the form it uses):
 
 ```bash
 ros2 service type /spawn_turtle
@@ -71,7 +69,7 @@ string name # Optional.  A unique name will be created and returned if this is e
 string name
 ```
 
-The `---` line splits the form in two: **above = what you send (request)** · **below = what you get back (response)**
+The `---` line splits the form in two. Above it is what you send (the **request**); below it is what you get back (the **response**).
 
 Call it:
 
@@ -86,16 +84,16 @@ response:
 turtlesim.srv.Spawn_Response(name='buddy')
 ```
 
-A new turtle appears ✅ and it gets the full set of topics and services, just like turtle1:
+A new turtle appears, and it gets the same full set of topics and services as turtle1:
 
 ```bash
 ros2 topic list | grep buddy
 ros2 topic pub --once /buddy/say std_msgs/msg/String "{data: 'Hi turtle1!'}"
 ```
 
-## Step 3: Teleport to the pizzas 🍕
+## Step 3: Teleport to the pizzas
 
-You could drive there... or **teleport**:
+You could drive there, or you could teleport:
 
 ```bash
 ros2 interface show turtlesim/srv/TeleportAbsolute
@@ -108,15 +106,14 @@ float32 theta
 ---
 ```
 
-The response is empty — this service returns nothing, it just says "done".
+The response is empty. This service returns nothing; the call coming back just means it's done.
 
-And the **eat** service `/turtle1/eat` (type `std_srvs/srv/Empty` — you send nothing at all).
-The turtle eats a pizza that's inside its green cone (in front, within 2 m); with no pizza in the cone nothing happens.
+Then there's the eat service, `/turtle1/eat`. Its type is `std_srvs/srv/Empty`, so you send nothing at all. The turtle eats a pizza that's inside its green cone (in front, within 2 m). With no pizza in the cone, nothing happens.
 
-Work out how to eat all three yourself!
+Work out how to eat all three yourself.
 
 <details>
-<summary>🔓 Solution</summary>
+<summary>Solution</summary>
 
 ```bash
 ros2 service call /turtle1/teleport_absolute turtlesim/srv/TeleportAbsolute "{x: 1.5, y: 9.0, theta: 0.0}"
@@ -133,11 +130,11 @@ Teleporting right on top of a pizza always works, whichever way you face.
 
 </details>
 
-🎉 Mission complete!
+Once the last pizza is gone, the panel shows *Mission complete* and your stars.
 
 ---
 
-## 🕸️ System map: what you just did
+## System map
 
 ```mermaid
 flowchart LR
@@ -164,14 +161,15 @@ flowchart LR
 
 > 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
 
-- One node (`turtlesim_plus`) is the **server** for many services; you were the **client** of each call
-- Each call is a round trip: request out, response back, done. Nothing keeps flowing afterwards, unlike a topic
-- A service can change the graph itself: `/spawn_turtle` created a whole new set of topics and services under `/buddy/`, and quest_master noticed `/buddy/pose` appear
-- Services and topics **work together**: you ate with a service (`/turtle1/eat`), and the result was announced on a topic (`/turtle1/pizza_count`) that quest_master listens to
+One node, `turtlesim_plus`, is the **server** for many services, and you were the **client** of each call. Every call is a round trip: the request goes out, the response comes back, and that's the end of it. Unlike a topic, nothing keeps flowing afterwards.
 
-> 🏗️ You now know topics and services — a good moment to read [ARCHITECTURE.md](../ARCHITECTURE.md) for the big picture of how ROS 2 systems fit together.
+A service can also change the graph. `/spawn_turtle` created a whole new set of topics and services under `/buddy/`, and quest_master noticed `/buddy/pose` appear.
 
-## 🔍 Commands you now know
+Services and topics work together. You ate with a service (`/turtle1/eat`), and the result was announced on a topic (`/turtle1/pizza_count`) that quest_master listens to.
+
+Now that you know topics and services, it's a good time to read [ARCHITECTURE.md](../ARCHITECTURE.md) for the bigger picture of how ROS 2 systems fit together.
+
+## Commands you now know
 
 | Command | What it does |
 |---|---|
@@ -180,24 +178,24 @@ flowchart LR
 | `ros2 interface show <type>` | show the form (above `---` = request, below = response) |
 | `ros2 service call <service> <type> "<yaml>"` | call the service |
 
-## 🧩 Check yourself
+## Check yourself
 
 <details>
 <summary>1. What happens if you call <code>/spawn_turtle</code> with name: 'buddy' again?</summary>
 
-Try it! Names must be unique, so the simulator picks `buddy_1` and **tells you in the response** — that's why services answer back. With a topic you'd never find out.
+Try it. Names must be unique, so the simulator picks `buddy_1` and tells you in the response. That's why services answer back: with a topic you'd never find out.
 
 </details>
 
 <details>
 <summary>2. Should "turn the turtle" be a topic or a service? And "reset the map"?</summary>
 
-Turning = a continuous stream of velocities → **topic** (`cmd_vel`)
-Resetting = a one-off job where you want to know it's done → **service** (e.g. `/clear`)
+Turning is a continuous stream of velocities, so it's a topic (`cmd_vel`).
+Resetting is a one-off job where you want to know it's done, so it's a service (e.g. `/clear`).
 
 </details>
 
-## 🏆 Side quest: turtle artist 🎨
+## Extras: turtle artist
 
 ```bash
 # red pen, width 5
@@ -211,10 +209,10 @@ ros2 service call /spawn_pizza turtlesim_plus_interfaces/srv/GivePosition "{x: 5
 ros2 service call /remove_turtle turtlesim/srv/Kill "{name: 'buddy'}"
 ```
 
-> ⚠️ Why does `'off'` need quotes? In YAML the word `off` (like `yes`/`no`) means the boolean `false`, not a field name
+> Careful: `'off'` needs quotes because in YAML the word `off` (like `yes` and `no`) means the boolean `false`, not a field name.
 
-Combine it with mission 2: switch colours and draw rainbow circles 🌈
+Combine this with mission 2 to switch colours and draw rainbow circles.
 
 ---
 
-**← Previous** [Mission 2](02-steering.md) · **Next →** [Mission 4: My First Node](04-first-node.md)
+**Previous:** [Mission 2](02-steering.md) · **Next:** [Mission 4: My First Node](04-first-node.md)

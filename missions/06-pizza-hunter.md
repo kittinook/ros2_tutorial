@@ -1,15 +1,14 @@
-# Mission 6: Pizza Hunter 🍕
+# Mission 6: Pizza Hunter
 
-> **Briefing:** No more coordinates! Five pizzas are hidden at random spots on the map.
-> The turtle has a **scanner** (the red cone) to look around — find a pizza, rush in, and **call the eat service** from your own code.
+No coordinates this time. Five pizzas are hidden at random spots on the map, and the turtle has a scanner (the red cone) to look around with. Find a pizza, drive up to it, and call the eat service from your own code.
 
 ![Mission 6: the turtle has eaten four pizzas, the last one is in the top-right](../docs/images/mission-6.png)
 
-**🎯 Objectives**
+**Objectives**
 - [ ] Eat 5 pizzas
-- [ ] Drive the turtle with your own node (and no teleporting!)
+- [ ] Drive the turtle with your own node (and no teleporting)
 
-**⭐ Stars:** ≤ 15 s = ⭐⭐⭐ · ≤ 40 s = ⭐⭐ — the clock starts when the turtle starts moving
+**Stars:** ≤ 15 s = ⭐⭐⭐ · ≤ 40 s = ⭐⭐ · the clock starts when the turtle starts moving
 
 ```bash
 # Terminal 1
@@ -18,12 +17,12 @@ ros2 launch turtle_quest mission.launch.py mission:=6
 
 ---
 
-## 🧠 Concept card: the turtle's sensors
+## The turtle's sensors
 
 | Cone | Range | Used for |
 |---|---|---|
-| 🔴 red (big) | 4 m, 60° wide | the **scanner** — whatever is inside is reported on `/turtle1/scan` |
-| 🟢 green (small) | 2 m, 60° wide | **eating range** — `/turtle1/eat` only works on a pizza inside this cone |
+| red (big) | 4 m, 60° wide | the scanner: whatever is inside is reported on `/turtle1/scan` |
+| green (small) | 2 m, 60° wide | eating range: `/turtle1/eat` only works on a pizza inside this cone |
 
 ```bash
 ros2 interface show turtlesim_plus_interfaces/msg/ScannerDataArray
@@ -36,16 +35,13 @@ ScannerData[] data          ← list of things seen (empty = nothing in sight)
 	float64 distance        ← how many metres away
 ```
 
-Notice the scanner **does not give x, y coordinates** — only "0.3 radians to the left, 2.5 m away",
-just like real sensors (cameras, LiDAR) that report what they see **relative to the robot itself**.
+The scanner doesn't give you x and y. It says something like "0.3 radians to the left, 2.5 m away". Real sensors such as cameras and LiDAR work the same way: they report what they see relative to the robot itself.
 
-> 🧪 **Want to see it first?** Start free-play mode `ros2 launch turtlesim_plus turtlesim_plus.launch.py`,
-> click to drop pizzas in front of the turtle and run `ros2 topic echo /turtle1/scan` — drop them left/right and watch the angle change.
-> (Experimenting inside mission 6 itself makes the cheat detector remember your `ros2 topic pub` — relaunch the mission before the real run.)
+If you want to see it first, start free-play mode with `ros2 launch turtlesim_plus turtlesim_plus.launch.py`, click to drop pizzas in front of the turtle and run `ros2 topic echo /turtle1/scan`. Drop them to the left and right and watch the angle change. Don't experiment inside mission 6 itself: the cheat detector remembers your `ros2 topic pub`, so you'd have to relaunch the mission before the real run.
 
 ---
 
-## 🕸️ System map: what you'll build
+## System map
 
 ```mermaid
 flowchart LR
@@ -61,15 +57,17 @@ flowchart LR
     SIM --> POSE["/turtle1/pose<br/>Pose"]:::topic --> ME
     ME(["pizza_hunter<br/>(your node)"]):::mine --> CMD["/turtle1/cmd_vel<br/>Twist"]:::topic --> SIM
     ME -. "call_async" .-> EAT{{"/turtle1/eat<br/>Empty"}}:::srv -.- SIM
-    CLI(["ros2 action send_goal<br/>(side quest)"]):::mine == goal ==> DP[["/turtle1/detect_pizza<br/>GetData"]]:::act === SIM
+    CLI(["ros2 action send_goal<br/>(extra)"]):::mine == goal ==> DP[["/turtle1/detect_pizza<br/>GetData"]]:::act === SIM
     SIM --> PC["/turtle1/pizza_count"]:::topic --> QM(["quest_master"]):::ros
 ```
 
 > 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
 
-- Two topics in, one topic out, and a **service**: your first node that uses both kinds of communication
-- The scanner already did the hard part (perception); your node only decides. Topics bring the world in, your node thinks, topics and services act — this shape comes back in every mission from here on
-- The purple box is an **action**; you'll only poke it from the terminal, in the side quest at the end
+Two topics in, one topic out, plus a service call. This is your first node that uses both kinds of communication.
+
+The scanner has already done the hard part (perception), so your node only decides. Topics bring the world in, your node thinks, and topics and services act on the result. Every mission from here on has that shape.
+
+The purple box is an action. You'll only poke it from the terminal, in the extra at the end.
 
 ---
 
@@ -112,20 +110,20 @@ if __name__ == '__main__':
     main()
 ```
 
-Add `'pizza_hunter = my_turtle.pizza_hunter:main',` to `setup.py`, then build + source + run as before.
+Add `'pizza_hunter = my_turtle.pizza_hunter:main',` to `setup.py`, then build, source and run as before.
 
-If a pizza happens to be inside the red cone you'll see log lines; if not, silence — that's fine, next the turtle goes searching.
+If a pizza happens to be inside the red cone you'll see log lines. If not, silence, which is fine. The next step sends the turtle searching.
 
-## Step 2: Rush in + eat 🍕
+## Step 2: Drive in and eat
 
-**Rushing in** is even easier than mission 5, because `angle` already *is* the heading error — no atan2 needed:
+Driving in is easier than in mission 5, because `angle` already is the heading error. You don't need atan2:
 
 ```python
 cmd.angular.z = K_ANGULAR * target.angle
 cmd.linear.x = min(K_LINEAR * target.distance, MAX_SPEED)
 ```
 
-**Eating** = calling `/turtle1/eat`, but this time from **inside your code** — you need a **service client**:
+Eating means calling `/turtle1/eat`, but this time from inside your code. For that you need a **service client**:
 
 ```python
 self.eat_client = self.create_client(Empty, '/turtle1/eat')     # when creating the node
@@ -133,9 +131,9 @@ self.eat_client = self.create_client(Empty, '/turtle1/eat')     # when creating 
 self.eat_future = self.eat_client.call_async(Empty.Request())   # when you want to eat
 ```
 
-### 🧠 Concept card: why `call_async`?
+### Why `call_async`?
 
-`call_async` = **place the order and hang up** — no waiting on the line. You get a "receipt" (a `future`) to check later (`future.done()`).
+`call_async` places the order and hangs up instead of waiting on the line. You get a receipt, a `future`, that you can check later with `future.done()`.
 
 ```mermaid
 sequenceDiagram
@@ -151,15 +149,13 @@ sequenceDiagram
     X->>L: next tick: future.done() is True → order again if needed
 ```
 
-Why not wait on the line? Because your code is running **inside a callback** — if it waits, `spin()` is stuck with you,
-nobody is left to receive the answer → both sides wait forever (**deadlock**) and the turtle freezes 🥶
+Your code runs inside a callback. If it waits for the answer there, `spin()` is stuck with it and nobody is left to receive the response. Both sides wait forever and the turtle freezes. That's a **deadlock**.
 
-To avoid spamming requests, only send a new one once the previous one has been answered.
+So you don't flood the service with requests, only send a new one once the previous one has been answered.
 
-## Step 3: Nothing in sight → patrol 🚶
+## Step 3: Nothing in sight, so patrol
 
-If the scanner sees no pizza, the turtle has to go look. Simple and effective: **patrol around 4 waypoints**,
-using exactly the "face the point and drive" recipe from mission 5 (so it also needs its own position → subscribe to `/turtle1/pose`).
+If the scanner sees no pizza, the turtle has to go and look. A simple approach works: patrol around 4 waypoints using the same "face the point and drive" recipe from mission 5. That recipe needs the turtle's own position, so you also subscribe to `/turtle1/pose`.
 
 ```mermaid
 flowchart TD
@@ -265,31 +261,32 @@ if __name__ == '__main__':
 ros2 run my_turtle pizza_hunter
 ```
 
-🎉 Mission complete! Your turtle finds its own food — that's your first (small) autonomous robot
+The turtle finds its own food now: a small autonomous robot. The panel shows *Mission complete* and your stars.
 
 <details>
-<summary>🏎️ Want 3 stars?</summary>
+<summary>Want 3 stars?</summary>
 
-- Patrol speed and chase speed don't have to be the same
-- Where should the patrol points be? The red cone sees 4 m...
+- Patrol speed and chase speed don't have to be the same.
+- Where should the patrol points be? The red cone sees 4 m.
 - While chasing one pizza, what if a closer one shows up?
 
-Your instructor has a 3-star reference version to demo — but try these ideas first!
+Your instructor has a 3-star reference version to demo, but try these ideas first.
 
 </details>
 
 ---
 
-## 🔍 Summary
+## Summary
 
-- Most sensors report **relative to the robot** (angle + distance), not in world coordinates
-- **service client**: `create_client(Type, 'name')` → `call_async(Request())` → keep the `future` and check `.done()`
-- Never "wait on the line" inside a callback — deadlock
-- Autonomous behaviour = **look at the situation → pick an action** (pizza in sight? → chase / none? → patrol)
+Most sensors report relative to the robot (angle and distance), not in world coordinates.
 
-## 🏆 Side quest: meet actions ⚡
+A service client is `create_client(Type, 'name')`, then `call_async(Request())`. Keep the `future` and check `.done()`. Never wait on the line inside a callback, or you get a deadlock.
 
-Besides topics and services there's a third way to communicate: **actions** — like a service for long jobs (send a goal → get progress feedback → get a result, and you can cancel midway). The simulator has a tiny one to try:
+The autonomous behaviour here is just looking at the situation and picking an action: if a pizza is in sight, chase it; if not, patrol.
+
+## Extras: actions
+
+Besides topics and services there's a third way to communicate, the **action**. It's like a service for long jobs: you send a goal, get progress feedback along the way, then get a result, and you can cancel midway. The simulator has a tiny one to try:
 
 ```bash
 ros2 action list
@@ -298,9 +295,8 @@ ros2 interface show turtlesim_plus_interfaces/action/GetData
 ros2 action send_goal /turtle1/detect_pizza turtlesim_plus_interfaces/action/GetData "{}"
 ```
 
-With a pizza in the red cone you get `is_data: true` and the list of pizzas; otherwise the goal is aborted.
-(Real robots use actions for long tasks such as "navigate to the kitchen" in Nav2)
+With a pizza in the red cone you get `is_data: true` and the list of pizzas. Otherwise the goal is aborted. Real robots use actions for long tasks, such as "navigate to the kitchen" in Nav2.
 
 ---
 
-**← Previous** [Mission 5](05-eyes.md) · **Next →** [Mission 7: Turtle Team](07-team.md)
+**Previous:** [Mission 5](05-eyes.md) · **Next:** [Mission 7: Turtle Team](07-team.md)

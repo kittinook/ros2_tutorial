@@ -1,15 +1,14 @@
-# Mission 5: Turtle Eyes 👀
+# Mission 5: Turtle Eyes
 
-> **Briefing:** Five flags at random positions, different every time — no memorising the route!
-> The turtle has to **look** where it is, **look** where the flag is, and steer there by itself.
+Five flags at random positions, different every run, so memorising the route won't help. The turtle has to check where it is, check where the flag is, and steer there by itself.
 
 ![Mission 5: the turtle heads for a random flag after touching three](../docs/images/mission-5.png)
 
-**🎯 Objectives**
+**Objectives**
 - [ ] Touch all 5 flags in order
 - [ ] Drive the turtle with your own node
 
-**⭐ Stars:** ≤ 20 s = ⭐⭐⭐ · ≤ 40 s = ⭐⭐ — the clock starts when the turtle starts moving
+**Stars:** ≤ 20 s = ⭐⭐⭐ · ≤ 40 s = ⭐⭐ · the clock starts when the turtle starts moving
 
 ```bash
 # Terminal 1
@@ -18,10 +17,9 @@ ros2 launch turtle_quest mission.launch.py mission:=5
 
 ---
 
-## 🧠 Concept card: subscribers and closed loop
+## Subscribers and closed loop
 
-In mission 4 your node only **sent** (a publisher) — like walking with your eyes shut, counting steps.
-This time it also **receives** (a subscriber): every time a message arrives, ROS calls your **callback**.
+In mission 4 your node only sent messages, through a publisher. That's walking with your eyes shut and counting steps. This time it also receives them, through a **subscriber**: every time a message arrives, ROS calls your **callback**.
 
 ```mermaid
 flowchart LR
@@ -50,16 +48,15 @@ flowchart LR
 
 > 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
 
-Look at the position → compute → steer → look at the new position → ... round and round: a **closed loop (feedback)**.
-Almost every real robot works this way.
+The node looks at the position, works out a command, steers, then looks at the new position and does it all again. That's a **closed loop**, also called feedback, and almost every real robot works this way.
 
-Inside the node, the **callbacks only remember** the latest data and a **timer decides** what to do with it. Step 3 explains why.
+Inside the node, the callbacks only remember the latest data and a timer decides what to do with it. Step 3 explains why.
 
 ---
 
 ## Step 1: Listen first
 
-Where are the flags? The quest master announces them on a topic:
+The quest master announces where the flags are on a topic:
 
 ```bash
 ros2 topic echo --once /mission/goals
@@ -77,7 +74,7 @@ poses:
     ...
 ```
 
-The type is `geometry_msgs/msg/PoseArray` — `poses` is a list of positions, and **the first one (`poses[0]`) is always the next flag**. Touch it and it disappears from the list.
+The type is `geometry_msgs/msg/PoseArray`. `poses` is a list of positions, and the first one (`poses[0]`) is always the next flag. Touch it and it disappears from the list.
 
 Create `src/my_turtle/my_turtle/go_to_goal.py`:
 
@@ -124,14 +121,14 @@ if __name__ == '__main__':
     main()
 ```
 
-Add it to `setup.py` (after the existing line — mind the comma):
+Add it to `setup.py` after the existing line. Mind the comma:
 
 ```python
             'square = my_turtle.square:main',
             'go_to_goal = my_turtle.go_to_goal:main',
 ```
 
-You changed `setup.py` → rebuild:
+You changed `setup.py`, so rebuild:
 
 ```bash
 cd ~/turtle_quest
@@ -145,9 +142,9 @@ ros2 run my_turtle go_to_goal
 [INFO] [go_to_goal]: next flag (2.71, 8.97), 5 left
 ```
 
-The turtle has eyes now 👀
+The node can see the turtle and the next flag now.
 
-## Step 2: A little maths 📐
+## Step 2: A little maths
 
 ```text
                                G  flag (goal_x, goal_y)
@@ -164,23 +161,17 @@ The turtle has eyes now 👀
      error = a - theta             (how far off we are)
 ```
 
-- **distance** = `math.hypot(dx, dy)` (Pythagoras)
-- **angle to face** = `math.atan2(dy, dx)` (in radians)
-- **heading error** = angle to face − theta
+- distance = `math.hypot(dx, dy)` (Pythagoras)
+- angle to face = `math.atan2(dy, dx)` (in radians)
+- heading error = angle to face − theta
 
-⚠️ Trap: if we should face 170° but face −170°, error = 340° and the turtle spins almost a full turn, when −20° would do.
-Fix it with the standard trick `math.atan2(math.sin(e), math.cos(e))`, which always squeezes an angle into −π..π
+> Careful: if you should face 170° but face −170°, the error comes out as 340° and the turtle spins almost a full turn when −20° would do. Fix it with the standard trick `math.atan2(math.sin(e), math.cos(e))`, which always squeezes an angle into −π..π.
 
-## Step 3: Decide — a P controller
+## Step 3: Decide with a P controller
 
-A simple rule used all over the world (**Proportional controller**):
+A **proportional controller** (P controller) is a simple rule used all over the world. The further off you point, the harder you turn: `angular.z = K_ANGULAR × error`. The further away you are, the faster you drive, up to a top speed: `linear.x = min(K_LINEAR × distance, MAX_SPEED)`. And if you're still pointing way off, don't drive yet. Turn first.
 
-- **the further off we point → the harder we turn:** `angular.z = K_ANGULAR × error`
-- **the further away → the faster we drive** (up to a top speed): `linear.x = min(K_LINEAR × distance, MAX_SPEED)`
-- if we're still pointing way off, don't drive yet — turn first
-
-Good structure: **callbacks only remember the latest data** and **a timer makes decisions** with whatever is latest.
-Change `go_to_goal.py` to:
+The structure matters as much as the rule. Callbacks only remember the latest data, and a timer makes decisions with whatever is latest. Change `go_to_goal.py` to:
 
 ```python
 # my_turtle/my_turtle/go_to_goal.py
@@ -249,51 +240,51 @@ if __name__ == '__main__':
 ros2 run my_turtle go_to_goal
 ```
 
-The turtle steers to each flag by itself 🎉 When the flags run out, `self.goals` is empty → zero Twist → the turtle parks.
+The turtle steers to each flag by itself. When the flags run out, `self.goals` is empty, the node publishes a zero Twist and the turtle parks.
 
 <details>
-<summary>🏎️ Want 3 stars?</summary>
+<summary>Want 3 stars?</summary>
 
-The defaults take about 25 s (2 stars). Tune `MAX_SPEED`, `K_LINEAR`, `K_ANGULAR`:
-- `K_ANGULAR` too high → the turtle wobbles (overshoot) · too low → sluggish turns
-- `MAX_SPEED` too high → it may shoot past the flag and loop back
+The defaults take about 25 s, which is 2 stars. Tune `MAX_SPEED`, `K_LINEAR` and `K_ANGULAR`:
+- `K_ANGULAR` too high and the turtle wobbles (overshoot); too low and the turns are sluggish.
+- `MAX_SPEED` too high and it may shoot past the flag and loop back.
 
-Your instructor has a 3-star reference version to demo — but try tuning first!
+Your instructor has a 3-star reference version to demo, but try tuning first.
 
 </details>
 
 ---
 
-## 🔍 Summary
+## Summary
 
-- **subscriber**: `self.create_subscription(Type, 'topic', callback, 10)` — ROS calls `callback(msg)` for every message
-- callbacks should be **short and quick** — store the data, let a timer decide
-- one node can be both publisher and subscriber
-- **closed loop**: measure → compute the error → command → measure again · **P controller**: command = K × error
+- **subscriber**: `self.create_subscription(Type, 'topic', callback, 10)`. ROS calls `callback(msg)` for every message.
+- Keep callbacks short and quick. Store the data and let a timer decide.
+- One node can be both publisher and subscriber.
+- A closed loop measures, computes the error, sends a command and measures again. A P controller sets command = K × error.
 
-## 🧩 Check yourself
+## Check yourself
 
 <details>
 <summary>1. What happens if you put <code>time.sleep(5)</code> inside <code>pose_callback</code>?</summary>
 
-`spin()` runs one callback at a time — while it sleeps for 5 s the timer doesn't run and no other message is read. The turtle stops (1-second rule) and moves in jerks.
-Lesson: **never wait long inside a callback** — that's why mission 4 used a timer instead of `while` + `sleep`
+`spin()` runs one callback at a time. While it sleeps for 5 s the timer doesn't run and no other message is read, so the turtle stops (1-second rule) and moves in jerks.
+Never wait long inside a callback. That's why mission 4 used a timer instead of `while` + `sleep`.
 
 </details>
 
 <details>
 <summary>2. If someone teleports the turtle mid-run, what does this node do? How is it different from square.py?</summary>
 
-Try it! (`ros2 service call /turtle1/teleport_absolute ...` while the node runs)
-go_to_goal reads the new position and steers back to the flag by itself — closed loop corrects itself, while square.py would blindly carry on with its plan
+Try it: run `ros2 service call /turtle1/teleport_absolute ...` while the node runs.
+go_to_goal reads the new position and steers back to the flag by itself. A closed loop corrects itself, while square.py would blindly carry on with its plan.
 
 </details>
 
-## 🏆 Side quests
+## Extras
 
 - Live plot of the position: `ros2 run rqt_plot rqt_plot /turtle1/pose/x /turtle1/pose/y`
-- Launch mission 5 with `seed:=42` and race a friend — the flags will be in exactly the same places
+- Launch mission 5 with `seed:=42` and race a friend. The flags will be in exactly the same places.
 
 ---
 
-**← Previous** [Mission 4](04-first-node.md) · **Next →** [Mission 6: Pizza Hunter](06-pizza-hunter.md)
+**Previous:** [Mission 4](04-first-node.md) · **Next:** [Mission 6: Pizza Hunter](06-pizza-hunter.md)

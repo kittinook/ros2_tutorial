@@ -1,13 +1,13 @@
 # turtlesim_plus (Turtle Quest fork)
 
-A ROS 2 (Humble) reimplementation of `turtlesim` in `pygame`, extended with **interactive
-food and delivery mechanics**: turtles scan for nearby entities with a cone-shaped sensor,
+A ROS 2 (Humble) reimplementation of `turtlesim` in `pygame`, extended with interactive
+food and delivery mechanics: turtles scan for nearby entities with a cone-shaped sensor,
 eat spawned pizzas, and carry parcels to a drop-off zone. In this fork turtles can also grow
-**two arms with grippers** to pick up objects and carry heavy crates. Multiple turtles are supported
-natively — each is a self-contained composition of ROS 2 plugins
+two arms with grippers to pick up objects and carry heavy crates. Multiple turtles are supported
+natively; each is a self-contained composition of ROS 2 plugins
 (command/scanner/eat/delivery).
 
-Originally written by **Pi Thanacha Choopojcharoen** —
+Originally written by Pi Thanacha Choopojcharoen as
 [tchoopojcharoen/turtlesim_plus](https://github.com/tchoopojcharoen/turtlesim_plus)
 (forked from commit `8c7996a`). This copy is adapted as the simulator for the
 [Turtle Quest](../../README.md) beginner course; the behaviour-tree companion package
@@ -19,34 +19,33 @@ Originally written by **Pi Thanacha Choopojcharoen** —
 
 Teaching additions:
 
-- **Dual-arm turtles** (`arms` parameter): each turtle gets a left and a right planar 2-link arm
-  (shoulder + elbow) with a gripper — see [Arms](#arms) below. Plus **crates**: heavy objects that only
+- Dual-arm turtles (`arms` parameter): each turtle gets a left and a right planar 2-link arm
+  (shoulder + elbow) with a gripper; see [Arms](#arms) below. Also crates: heavy objects that only
   move when both grippers of one turtle hold them.
-- **`/judge/objects`** (`turtlesim_plus_interfaces/msg/WorldObjectArray`) — every pizza, parcel and crate
+- `/judge/objects` (`turtlesim_plus_interfaces/msg/WorldObjectArray`): every pizza, parcel and crate
   with its position and holder, for referees such as Turtle Quest's `quest_master`.
-
-- **`/[name]/say`** (`std_msgs/msg/String`) — shows a speech bubble above the turtle for 5 s.
-- **Info panel** to the right of the world (window is now 780×500): live x / y / θ, pizza and
-  parcel counts of every turtle, plus any text published on **`/hud`** (`std_msgs/msg/String`,
+- `/[name]/say` (`std_msgs/msg/String`): shows a speech bubble above the turtle for 5 s.
+- Info panel to the right of the world (window is now 780×500): live x / y / θ, pizza and
+  parcel counts of every turtle, plus any text published on `/hud` (`std_msgs/msg/String`,
   with a tiny line-prefix markup: `# ` title, `[x] ` / `[ ] ` checklist, `! ` warning,
   `* ` highlight, `$ N` star rating).
-- **Goal flags** drawn from **`/mission/goals`** (`geometry_msgs/msg/PoseArray`; `position.z`
+- Goal flags drawn from `/mission/goals` (`geometry_msgs/msg/PoseArray`; `position.z`
   is the flag radius, the first pose is highlighted as "next").
-- **Coordinate grid** with axis labels (`show_grid` parameter) and a **name label** under each turtle.
-- **`/clear_objects`** (`std_srvs/srv/Empty`) — removes every pizza and parcel.
-- The **drop-off zone is visible** (labelled circle), and a carried parcel is drawn on the turtle's back.
+- Coordinate grid with axis labels (`show_grid` parameter) and a name label under each turtle.
+- `/clear_objects` (`std_srvs/srv/Empty`): removes every pizza and parcel.
+- The drop-off zone is visible (labelled circle), and a carried parcel is drawn on the turtle's back.
 - Fonts that also cover Thai are preferred when installed (Waree / Loma / Garuda …), so `say` works in Thai too.
 
 Behaviour changes:
 
-- **`cmd_vel` timeout** (`cmd_vel_timeout`, default 1.0 s, 0 = off): like stock turtlesim, a
+- `cmd_vel` timeout (`cmd_vel_timeout`, default 1.0 s, 0 = off): like stock turtlesim, a
   turtle stops when no new command arrived for that long.
-- **Real-time physics**: each step integrates the actual elapsed time (capped at 0.1 s) instead of
+- Real-time physics: each step integrates the actual elapsed time (capped at 0.1 s) instead of
   a fixed `time_step`, so motion stays in real time even when ticks are late under CPU load.
   `time_step` is now the nominal tick period.
-- **`/[name]/scan` is published every tick**, with an empty list when nothing is in the cone
+- `/[name]/scan` is published every tick, with an empty list when nothing is in the cone
   (upstream only published on detections).
-- **`/[name]/pose`** reports the commanded `linear_velocity` / `angular_velocity` (upstream: always 0).
+- `/[name]/pose` reports the commanded `linear_velocity` / `angular_velocity` (upstream: always 0).
 - Sensor cones are drawn underneath pizzas/parcels so they never hide them; the pickup cone is an outline.
 - Rendering is capped at 60 fps with cached grid/text surfaces.
 - Fixes: removing a turtle now also destroys its `detect_pizza` action server (re-spawning the same
@@ -54,9 +53,9 @@ Behaviour changes:
 
 ## Nodes / Scripts
 
-- **`turtlesim_plus_node.py`** — the simulator itself. Owns the `pygame` window and every
+- `turtlesim_plus_node.py`: the simulator itself. Owns the `pygame` window and every
   ROS 2 service/topic/action described below; spawns `turtle1` automatically on startup.
-- **`pizza_on_click.py`** — subscribes to `/mouse_position` (published by the simulator on
+- `pizza_on_click.py`: subscribes to `/mouse_position` (published by the simulator on
   every left-click in the world area) and calls `/spawn_pizza` at that world position.
 
 ## Build & launch
@@ -167,10 +166,10 @@ straight lines and arcs are exact for any step length.
 ## Known limitations
 
 - No inter-entity collision; turtles and objects may overlap.
-- Pen trails have no size cap — call `/clear` in long sessions.
+- Pen trails have no size cap; call `/clear` in long sessions.
 - No automated test suite; behaviour is verified by driving the simulator through its ROS interface
   (the Turtle Quest missions and reference solutions exercise most of it).
 
 ## License
 
-GPL-3.0-only — see [`LICENSE`](LICENSE).
+GPL-3.0-only; see [`LICENSE`](LICENSE).

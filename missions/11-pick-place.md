@@ -1,38 +1,37 @@
-# Mission 11: Pick & Place 🍽️
+# Mission 11: Pick & Place
 
-> **Briefing:** The turtle has opened a restaurant. Three pizzas lie around it; serve them all onto the **plate** (the ring in front of the turtle).
-> Every pizza is a little sequence — reach, grab, carry, release — so this is where **state machines** meet arms.
+The turtle has opened a restaurant. Three pizzas lie around it; serve them all onto the plate (the ring in front of the turtle). Each pizza is a short sequence of reach, grab, carry and release, so this is where state machines meet arms.
 
 ![Mission 11: the right arm carries a pizza to the plate](../docs/images/mission-11.png)
 
-**🎯 Objectives**
+**Objectives**
 - [ ] Put 3 pizzas on the plate
 - [ ] Move the arms with your own node
 
-**⭐ Stars:** ≤ 8 s = ⭐⭐⭐ · ≤ 20 s = ⭐⭐ — the turtle must stay parked; the clock starts when an arm starts moving
+**Stars:** ≤ 8 s = ⭐⭐⭐ · ≤ 20 s = ⭐⭐ · the turtle must stay parked, and the clock starts when an arm starts moving
 
 ```bash
 # Terminal 1
 ros2 launch turtle_quest mission.launch.py mission:=11
 ```
 
-> ⚠️ Don't call `/turtle1/eat` — the plate is inside the green cone and an eaten pizza can't be served. (If it happens, relaunch.)
+> Careful: don't call `/turtle1/eat`. The plate is inside the green cone, and an eaten pizza can't be served. If it happens, relaunch.
 
 ---
 
-## 🗺️ What you have to work with
+## What you have to work with
 
 | Name | Kind | Type | Used for |
 |---|---|---|---|
-| `/mission/items` | topic (in) | `geometry_msgs/msg/PoseArray` | the "overhead camera": world positions of pizzas **not yet on the plate** |
-| `/mission/goals` | topic (in) | `geometry_msgs/msg/PoseArray` | the plate (one ring) — it's at **(1.25, 0)** in the turtle frame |
-| `/turtle1/joint_states` | topic (in) | `sensor_msgs/msg/JointState` | where the joints are now → has the arm **arrived**? |
+| `/mission/items` | topic (in) | `geometry_msgs/msg/PoseArray` | the "overhead camera": world positions of pizzas not yet on the plate |
+| `/mission/goals` | topic (in) | `geometry_msgs/msg/PoseArray` | the plate (one ring), at (1.25, 0) in the turtle frame |
+| `/turtle1/joint_states` | topic (in) | `sensor_msgs/msg/JointState` | where the joints are now, so you can tell whether the arm has arrived |
 | `/turtle1/joint_command` | topic (out) | `sensor_msgs/msg/JointState` | where the joints should go |
 | `/turtle1/left_gripper`, `/turtle1/right_gripper` | service | `std_srvs/srv/SetBool` | grab (`true`) / release (`false`); `success` tells you if you got something |
 
 A pizza dropped anywhere inside the plate ring counts.
 
-### 🕸️ System map
+### System map
 
 ```mermaid
 flowchart LR
@@ -52,11 +51,11 @@ flowchart LR
 
 > 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
 
-Two signals move the state machine forward, and both come back *into* the node: **`joint_states`** (has the arm arrived?) and the gripper **service response** (did the grab work?).
+Two signals move the state machine forward, and both come back into the node: `joint_states` tells you whether the arm has arrived, and the gripper's service response tells you whether the grab worked.
 
-## 🧠 Concept card: a manipulation state machine
+## A manipulation state machine
 
-In mission 8 the state could be read from a topic every loop. Here we must **remember** where we are in the sequence, and only move on when something has finished: the arm has *arrived*, or the gripper service has *answered*.
+In mission 8 you could read the state from a topic on every loop. Here the node has to remember where it is in the sequence, and only move on once something has finished: the arm has arrived, or the gripper service has answered.
 
 ```mermaid
 stateDiagram-v2
@@ -70,20 +69,19 @@ stateDiagram-v2
     retry --> choose: gripper answered
 ```
 
-**"Arrived?"** = every joint of the working arm is within a small tolerance of its target, according to `/turtle1/joint_states`.
-Never assume a motion is done after a fixed time — the arm may be slower than you think (or a joint limit may stop it).
+"Arrived" means every joint of the working arm is within a small tolerance of its target, according to `/turtle1/joint_states`. Never assume a motion is done after a fixed time. The arm may be slower than you think, or a joint limit may stop it.
 
 ---
 
 ## Step 1: Reuse your IK
 
-Your IK and frame helpers already live in `arm_reach.py`. Because both files are in the `my_turtle` Python package, you can simply import them:
+Your IK and frame helpers already live in `arm_reach.py`. Both files are in the `my_turtle` Python package, so you can import them directly:
 
 ```python
 from my_turtle.arm_reach import inverse_kinematics, to_turtle_frame
 ```
 
-No copy-paste: fix a bug once, both nodes get it.
+No copy-paste. Fix a bug once and both nodes get the fix.
 
 ## Step 2: The node
 
@@ -200,7 +198,7 @@ if __name__ == '__main__':
     main()
 ```
 
-Notice how each `elif` only **checks a condition and moves on** — nothing ever waits inside the timer. That keeps `spin()` free to deliver the joint states and the service answers the state machine is waiting for (remember the deadlock from mission 6).
+Each `elif` only checks a condition and moves on. Nothing ever waits inside the timer, which keeps `spin()` free to deliver the joint states and service answers the state machine is waiting for. (That's the deadlock from mission 6 again.)
 
 Add `'pick_place = my_turtle.pick_place:main',` to `setup.py`, build, source, and run:
 
@@ -208,39 +206,38 @@ Add `'pick_place = my_turtle.pick_place:main',` to `setup.py`, build, source, an
 ros2 run my_turtle pick_place
 ```
 
-🎉 Mission complete!
+When the third pizza lands, the panel shows *Mission complete* and your stars.
 
 ---
 
-## 🔍 Summary
+## Summary
 
-- Manipulation = a **sequence**: reach → grasp → move → release. Write it as an explicit state machine
-- Move on when something **finished** (arm arrived per `joint_states`, service answered per `future.done()`), never after a guessed delay
-- Check the gripper's `success` — grasps can miss, and good robot code recovers
-- Share code between nodes by importing from your own package (`from my_turtle.arm_reach import ...`)
+Manipulation is a sequence (reach, grasp, move, release), so write it as an explicit state machine. Move on when something has finished (the arm has arrived per `joint_states`, the service has answered per `future.done()`), never after a guessed delay.
 
-## 🧩 Check yourself
+Check the gripper's `success`. Grasps can miss, and good robot code recovers. To share code between nodes, import it from your own package (`from my_turtle.arm_reach import ...`).
+
+## Check yourself
 
 <details>
 <summary>1. Why compare the joints against the target instead of just waiting 1 second after <code>move_arm</code>?</summary>
 
-The time a move takes depends on how far the joints travel (2 rad/s max) — a short move wastes time waiting, a long move isn't finished after 1 s and the gripper would close in mid-air.
+The time a move takes depends on how far the joints travel (2 rad/s max). A short move wastes time waiting, and a long move isn't finished after 1 s, so the gripper would close in mid-air.
 
 </details>
 
 <details>
 <summary>2. The loop sends the joint command once per move. What if that one message got lost?</summary>
 
-The arm would never arrive and the state machine would wait forever in `reach`. Robust code re-sends the target while waiting (e.g. publish it every loop in `reach`/`carry`) — try adding that!
+The arm would never arrive and the state machine would wait forever in `reach`. Robust code re-sends the target while waiting, for example by publishing it on every loop in `reach`/`carry`. Try adding that.
 
 </details>
 
-## 🏆 Side quests
+## Extras
 
-- **Two hands at once:** the left arm fetches the next pizza while the right one is still serving — juggle two state machines (one per arm)
-- Re-send the joint command every loop while waiting (see question 2)
-- Stack them neatly: drop each pizza at a slightly different spot on the plate
+- Two hands at once: the left arm fetches the next pizza while the right one is still serving. You'll need two state machines, one per arm.
+- Re-send the joint command on every loop while waiting (see question 2).
+- Stack them neatly by dropping each pizza at a slightly different spot on the plate.
 
 ---
 
-**← Previous** [Mission 10](10-long-reach.md) · **Next →** [Mission 12: Boss!](12-boss-heavy-lifting.md)
+**Previous:** [Mission 10](10-long-reach.md) · **Next:** [Mission 12: Boss!](12-boss-heavy-lifting.md)
