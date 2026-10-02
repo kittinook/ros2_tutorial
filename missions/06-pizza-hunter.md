@@ -45,6 +45,34 @@ just like real sensors (cameras, LiDAR) that report what they see **relative to 
 
 ---
 
+## 🕸️ System map: what you'll build
+
+```mermaid
+flowchart LR
+    classDef ros fill:#c8e6c9,stroke:#2e7d32,color:#1b1b1b
+    classDef mine fill:#fff59d,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+    classDef topic fill:#bbdefb,stroke:#1565c0,color:#1b1b1b
+    classDef srv fill:#ffe0b2,stroke:#e65100,color:#1b1b1b
+    classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
+    classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
+    classDef off fill:#f5f5f5,stroke:#9e9e9e,stroke-dasharray:4 3,color:#757575
+    SIM(["turtlesim_plus"]):::ros
+    SIM --> SCAN["/turtle1/scan<br/>ScannerDataArray"]:::topic --> ME
+    SIM --> POSE["/turtle1/pose<br/>Pose"]:::topic --> ME
+    ME(["pizza_hunter<br/>(your node)"]):::mine --> CMD["/turtle1/cmd_vel<br/>Twist"]:::topic --> SIM
+    ME -. "call_async" .-> EAT{{"/turtle1/eat<br/>Empty"}}:::srv -.- SIM
+    CLI(["ros2 action send_goal<br/>(side quest)"]):::mine == goal ==> DP[["/turtle1/detect_pizza<br/>GetData"]]:::act === SIM
+    SIM --> PC["/turtle1/pizza_count"]:::topic --> QM(["quest_master"]):::ros
+```
+
+> 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
+
+- Two topics in, one topic out, and a **service**: your first node that uses both kinds of communication
+- The scanner already did the hard part (perception); your node only decides. Topics bring the world in, your node thinks, topics and services act — this shape comes back in every mission from here on
+- The purple box is an **action**; you'll only poke it from the terminal, in the side quest at the end
+
+---
+
 ## Step 1: Look for pizza
 
 Create `src/my_turtle/my_turtle/pizza_hunter.py`:
@@ -108,6 +136,20 @@ self.eat_future = self.eat_client.call_async(Empty.Request())   # when you want 
 ### 🧠 Concept card: why `call_async`?
 
 `call_async` = **place the order and hang up** — no waiting on the line. You get a "receipt" (a `future`) to check later (`future.done()`).
+
+```mermaid
+sequenceDiagram
+    participant L as control_loop (your timer)
+    participant X as executor (rclpy.spin)
+    participant S as turtlesim_plus
+    L->>S: call_async(eat request)
+    Note over L: returns at once with a future (the receipt)
+    L-->>X: callback finished: the executor is free again
+    X->>X: runs pose / scan callbacks and more timer ticks
+    S-->>X: response arrives
+    Note over X: marks the future as done
+    X->>L: next tick: future.done() is True → order again if needed
+```
 
 Why not wait on the line? Because your code is running **inside a callback** — if it waits, `spin()` is stuck with you,
 nobody is left to receive the answer → both sides wait forever (**deadlock**) and the turtle freezes 🥶
@@ -232,7 +274,7 @@ ros2 run my_turtle pizza_hunter
 - Where should the patrol points be? The red cone sees 4 m...
 - While chasing one pizza, what if a closer one shows up?
 
-A 3-star example: `solutions/quest_solutions/quest_solutions/pizza_hunter.py`
+Your instructor has a 3-star reference version to demo — but try these ideas first!
 
 </details>
 

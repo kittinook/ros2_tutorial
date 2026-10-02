@@ -34,6 +34,42 @@ ros2 launch turtle_quest mission.launch.py mission:=8
 - DROP-OFF is at **(9.38, 9.38)**, radius 1.2 m
 - One parcel at a time (you'll see it on the turtle's back, and `[carrying]` in the panel)
 
+### 🕸️ System map
+
+```mermaid
+flowchart LR
+    classDef ros fill:#c8e6c9,stroke:#2e7d32,color:#1b1b1b
+    classDef mine fill:#fff59d,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+    classDef topic fill:#bbdefb,stroke:#1565c0,color:#1b1b1b
+    classDef srv fill:#ffe0b2,stroke:#e65100,color:#1b1b1b
+    classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
+    classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
+    classDef off fill:#f5f5f5,stroke:#9e9e9e,stroke-dasharray:4 3,color:#757575
+    SIM(["turtlesim_plus"]):::ros
+    subgraph SENSE["sense"]
+        POSE["/turtle1/pose<br/>Pose"]:::topic
+        SCAN["/turtle1/scan<br/>ScannerDataArray"]:::topic
+        CARRY["/turtle1/carrying_parcel<br/>Bool"]:::topic
+    end
+    ME(["delivery<br/>(your node)<br/>think: which state am I in?"]):::mine
+    subgraph ACT["act"]
+        CMD["/turtle1/cmd_vel<br/>Twist"]:::topic
+        PICK{{"/turtle1/pickup<br/>Empty"}}:::srv
+        DROP{{"/turtle1/dropoff<br/>Empty"}}:::srv
+    end
+    SIM --> POSE & SCAN & CARRY
+    POSE & SCAN & CARRY --> ME
+    ME --> CMD
+    ME -. call .-> PICK & DROP
+    CMD --> SIM
+    PICK & DROP -.- SIM
+```
+
+> 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
+
+This is the classic robot shape, **sense → think → act**: topics bring the world in, your node decides, topics and services carry the decision out.
+[ARCHITECTURE.md](../ARCHITECTURE.md#putting-them-together-design-patterns) shows this and other patterns for combining nodes.
+
 ## 🧠 Think in states
 
 A robot that does multi-step jobs is easiest to reason about as a set of **states**: every loop, ask "which state am I in, what should I do?"
@@ -176,13 +212,8 @@ Same as mission 6's `control_loop`, just replace `self.eat()` with `self.call(se
 
 </details>
 
-<details>
-<summary>🔓 The whole file</summary>
-
-`solutions/quest_solutions/quest_solutions/delivery.py` — or watch the turtle do it:
-`ros2 run quest_solutions delivery`
-
-</details>
+> 🧩 There's no full file to unlock here, on purpose: the hints above cover every TODO.
+> Still stuck? Ask your instructor to demo the reference solution, then write your own version.
 
 🏆 **Boss defeated!** That's the end of Part 1.
 

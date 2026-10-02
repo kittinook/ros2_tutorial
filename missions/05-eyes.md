@@ -25,13 +25,35 @@ This time it also **receives** (a subscriber): every time a message arrives, ROS
 
 ```mermaid
 flowchart LR
-    S["turtlesim_plus"] -- "/turtle1/pose" --> G["go_to_goal<br/>(your node)"]
-    Q["quest_master"] -- "/mission/goals" --> G
-    G -- "/turtle1/cmd_vel" --> S
+    classDef ros fill:#c8e6c9,stroke:#2e7d32,color:#1b1b1b
+    classDef mine fill:#fff59d,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+    classDef topic fill:#bbdefb,stroke:#1565c0,color:#1b1b1b
+    classDef srv fill:#ffe0b2,stroke:#e65100,color:#1b1b1b
+    classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
+    classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
+    classDef off fill:#f5f5f5,stroke:#9e9e9e,stroke-dasharray:4 3,color:#757575
+    SIM(["turtlesim_plus"]):::ros --> POSE["/turtle1/pose<br/>Pose · 100 per second"]:::topic
+    QM(["quest_master"]):::ros --> GOALS["/mission/goals<br/>PoseArray"]:::topic
+    subgraph ME["go_to_goal (your node)"]
+        CB1["pose_callback<br/>remember the pose"]
+        CB2["goals_callback<br/>remember the flags"]
+        LOOP["control_loop · 20 per second<br/>P controller"]
+        CB1 -.-> LOOP
+        CB2 -.-> LOOP
+    end
+    POSE --> CB1
+    GOALS --> CB2
+    GOALS -- "draws the flags" --> SIM
+    LOOP --> CMD["/turtle1/cmd_vel<br/>Twist"]:::topic --> SIM
+    style ME fill:#fffde7,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
 ```
+
+> 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
 
 Look at the position → compute → steer → look at the new position → ... round and round: a **closed loop (feedback)**.
 Almost every real robot works this way.
+
+Inside the node, the **callbacks only remember** the latest data and a **timer decides** what to do with it. Step 3 explains why.
 
 ---
 
@@ -236,7 +258,7 @@ The defaults take about 25 s (2 stars). Tune `MAX_SPEED`, `K_LINEAR`, `K_ANGULAR
 - `K_ANGULAR` too high → the turtle wobbles (overshoot) · too low → sluggish turns
 - `MAX_SPEED` too high → it may shoot past the flag and loop back
 
-A 3-star version: `solutions/quest_solutions/quest_solutions/go_to_goal.py`
+Your instructor has a 3-star reference version to demo — but try tuning first!
 
 </details>
 

@@ -41,6 +41,10 @@ Turtle Quest is a beginner ROS 2 course built on [turtlesim_plus](https://github
 
 Missions 0–3 and 9 use terminal commands only; the others are your own Python nodes.
 
+🕸️ **Every mission has a system map**, a diagram of the nodes, topics, services and actions involved, so you see how the pieces connect,
+not just how to type them. [ARCHITECTURE.md](ARCHITECTURE.md) puts all the pieces together: how ROS 2 systems are designed,
+when to use a topic, a service, an action or a parameter, and what happens under the hood.
+
 ## Quick start (5 minutes)
 
 You need **Ubuntu 22.04 + ROS 2 Humble** ([install guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html)).
@@ -82,12 +86,12 @@ source ~/turtle_quest/install/setup.bash
 ```text
 missions/                 mission guides 0-12 (start here)
 CHEATSHEET.md             ROS 2 commands + Python snippets on one page
+ARCHITECTURE.md           how ROS 2 systems fit together: the big picture, diagrams, design patterns
 TEACHER.md                instructor guide: lesson plan, classroom contests, writing new missions
 src/
   turtlesim_plus/            the simulator (adapted from the original, see its README)
   turtlesim_plus_interfaces/ messages/services/actions of turtlesim_plus
   turtle_quest/              quest_master, all missions, the star board
-solutions/quest_solutions/  reference solutions for the coding missions (try first 😉)
 ```
 
 ## Credits and license

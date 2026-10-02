@@ -20,6 +20,34 @@ The turtle is teleported to (3, 3) facing right. Flags: (7, 3) → (7, 7) → (3
 
 ---
 
+## 🕸️ System map: what you'll build
+
+```mermaid
+flowchart LR
+    classDef ros fill:#c8e6c9,stroke:#2e7d32,color:#1b1b1b
+    classDef mine fill:#fff59d,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+    classDef topic fill:#bbdefb,stroke:#1565c0,color:#1b1b1b
+    classDef srv fill:#ffe0b2,stroke:#e65100,color:#1b1b1b
+    classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
+    classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
+    classDef off fill:#f5f5f5,stroke:#9e9e9e,stroke-dasharray:4 3,color:#757575
+    subgraph ME["square (your node)"]
+        TIMER["timer (every 0.1 s)<br/>calls timer_callback()"] --> PUBL["publisher"]
+    end
+    PUBL --> CMD["/turtle1/cmd_vel<br/>Twist"]:::topic --> SIM(["turtlesim_plus"]):::ros
+    SIM --> POSE["/turtle1/pose"]:::topic --> QM(["quest_master"]):::ros
+    QM ---|"checks WHO publishes here"| CMD
+    style ME fill:#fffde7,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+```
+
+> 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
+
+- Your node publishes on `/turtle1/cmd_vel`, the same topic `ros2 topic pub` used in mission 2, so the simulator can't tell the difference
+- Inside the node, a **timer** drives a **publisher**. Nothing comes back *into* your node: it can't see where the turtle is (more on that at the end)
+- quest_master checks the **node name** of whoever publishes on `cmd_vel`: yours will be `square`, not `teleop_turtle` or `_ros2cli_...`
+
+---
+
 ## Step 1: Create a package
 
 ROS 2 code always lives in a **package**. Create your own box in `src/`:
@@ -114,6 +142,23 @@ Open `src/my_turtle/setup.py`, find `entry_points` and add this line:
 ```
 
 Read it as: "the command `square` = run the `main` function in `my_turtle/square.py`"
+
+How the three names fit together:
+
+```mermaid
+flowchart LR
+    classDef ros fill:#c8e6c9,stroke:#2e7d32,color:#1b1b1b
+    classDef mine fill:#fff59d,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+    classDef topic fill:#bbdefb,stroke:#1565c0,color:#1b1b1b
+    classDef srv fill:#ffe0b2,stroke:#e65100,color:#1b1b1b
+    classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
+    classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
+    classDef off fill:#f5f5f5,stroke:#9e9e9e,stroke-dasharray:4 3,color:#757575
+    PKG["📦 package my_turtle<br/>src/my_turtle/"] -- "setup.py entry_points:<br/>square = my_turtle.square:main" --> EXE["⚙️ executable square<br/>(installed by colcon build)"] -- "ros2 run my_turtle square" --> NODE(["🟢 node /square<br/>(a running process)"]):::mine
+```
+
+The **package** is the box of code, the **executable** is one program in it, and the **node** is what that program creates when it runs.
+One executable can be started many times as separate nodes — you'll do exactly that in mission 7.
 
 ## Step 4: Build and run
 

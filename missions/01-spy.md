@@ -174,6 +174,31 @@ ros2 topic pub --once /turtle1/say std_msgs/msg/String "{data: '<the rate you me
 
 ---
 
+## 🕸️ System map: what you just did
+
+```mermaid
+flowchart LR
+    classDef ros fill:#c8e6c9,stroke:#2e7d32,color:#1b1b1b
+    classDef mine fill:#fff59d,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+    classDef topic fill:#bbdefb,stroke:#1565c0,color:#1b1b1b
+    classDef srv fill:#ffe0b2,stroke:#e65100,color:#1b1b1b
+    classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
+    classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
+    classDef off fill:#f5f5f5,stroke:#9e9e9e,stroke-dasharray:4 3,color:#757575
+    QM(["quest_master"]):::ros --> CODE["/mission/secret_code<br/>String"]:::topic --> ECHO(["ros2 topic echo"]):::mine
+    SIM(["turtlesim_plus"]):::ros --> POSE["/turtle1/pose<br/>Pose · ~100 per second"]:::topic --> HZ(["ros2 topic hz"]):::mine
+    POSE --> QM
+    PUB(["ros2 topic pub"]):::mine --> SAY["/turtle1/say<br/>String"]:::topic --> SIM
+    SAY --> QM
+```
+
+> 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
+
+- Every `ros2 topic ...` command you typed **joined the graph as a temporary node** (named `_ros2cli_...`), did its job and left
+- `/turtle1/say` has **two subscribers**: the simulator draws the bubble, quest_master checks your answer. You published once; both got it
+- `/turtle1/pose` has many readers (quest_master, `ros2 topic hz`, and soon your own nodes) — the simulator doesn't care how many
+- Nobody told you about the spy topic in advance: quest_master published `/mission/secret_code`, and anyone who knew the name could listen
+
 ## 🔍 Commands you now know
 
 | Command | What it does |

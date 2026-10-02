@@ -30,6 +30,48 @@ ros2 launch turtle_quest mission.launch.py mission:=7
 
 ---
 
+## 🕸️ System map: what you'll build
+
+```mermaid
+flowchart TB
+    classDef ros fill:#c8e6c9,stroke:#2e7d32,color:#1b1b1b
+    classDef mine fill:#fff59d,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+    classDef topic fill:#bbdefb,stroke:#1565c0,color:#1b1b1b
+    classDef srv fill:#ffe0b2,stroke:#e65100,color:#1b1b1b
+    classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
+    classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
+    classDef off fill:#f5f5f5,stroke:#9e9e9e,stroke-dasharray:4 3,color:#757575
+    LAUNCH["team.launch.py"]
+    subgraph NS2["namespace /turtle2"]
+        direction LR
+        I2["/turtle2/scan<br/>/turtle2/pose"]:::topic --> H2(["pizza_hunter"]):::mine
+        P2[("max_speed = 1.5<br/>patrol_start = 2")]:::param -.- H2
+        H2 --> C2["/turtle2/cmd_vel"]:::topic
+        H2 -. call .-> E2{{"/turtle2/eat"}}:::srv
+    end
+    subgraph NS1["namespace /turtle1"]
+        direction LR
+        I1["/turtle1/scan<br/>/turtle1/pose"]:::topic --> H1(["pizza_hunter"]):::mine
+        P1[("max_speed = 1.5<br/>patrol_start = 0")]:::param -.- H1
+        H1 --> C1["/turtle1/cmd_vel"]:::topic
+        H1 -. call .-> E1{{"/turtle1/eat"}}:::srv
+    end
+    LAUNCH -- "same executable" --> NS2
+    LAUNCH -- "same executable" --> NS1
+    SET(["ros2 param set<br/>/turtle1/pizza_hunter max_speed 2.5"]):::mine -. call .-> NS1
+    NS1 & NS2 <--> SIM(["turtlesim_plus"]):::ros
+    NS1 -- "/parameter_events" --> QM(["quest_master"]):::ros
+```
+
+> 🟩 existing node · 🟨 you · 🟦 topic · 🟧 service · 🟪 action · ⬜ parameter — [how to read the maps](../ARCHITECTURE.md#how-to-read-the-maps)
+
+- **One** executable, started **twice**. Each copy lives in its own namespace, so `'cmd_vel'` in the code becomes `/turtle1/cmd_vel` in one copy and `/turtle2/cmd_vel` in the other
+- Each copy has its own **parameters** (grey): same code, different settings
+- `ros2 param set` reaches into one running node through services every node offers (the `.../set_parameters` family you skipped in mission 3). The node then announces the change on `/parameter_events`, and quest_master hears it
+- The launch file starts everything with the right namespaces and parameters, in one command
+
+---
+
 ## Step 1: Namespaces — take the turtle's name out of the code
 
 Right now `pizza_hunter.py` uses **absolute** names (starting with `/`), e.g. `'/turtle1/scan'` — hard-wired to turtle1.
