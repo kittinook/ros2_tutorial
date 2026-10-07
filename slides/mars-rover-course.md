@@ -62,8 +62,45 @@ style: |
   section.checklist ul { list-style: none; padding-left: 0; }
   section.checklist li { font-size: 25px; margin: 9px 0; }
   section.checklist li::before { content: "☐  "; color: #A63A14; font-weight: 700; }
+  section.cover { padding: 0 60px 0 90px; display: flex; flex-direction: column; justify-content: center; }
+  section.cover::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 26px; background: #A63A14; }
+  section.cover h1 { font-size: 66px; line-height: 1.12; color: #222; margin: 0 0 30px; }
+  section.cover h1::after { content: ""; display: block; width: 96px; height: 6px; background: #A63A14; margin-top: 24px; }
+  section.cover .name { font-size: 30px; font-weight: 700; color: #222; margin: 0; }
+  section.cover .role { font-size: 24px; color: #555; margin: 4px 0 0; }
+  section.cover .date { font-size: 22px; color: #888; margin: 28px 0 0; }
+  section.cover .qr { position: absolute; right: 90px; top: 50%; transform: translateY(-50%); text-align: center; }
+  section.cover .qr p { margin: 0; }
+  section.cover .qr img { width: 250px; border: 1px solid #ddd; }
+  section.cover .qr p:last-child { font-size: 16px; color: #666; margin-top: 8px; }
+
 ---
 
+
+<!-- _class: cover -->
+<!-- _paginate: false -->
+<!-- _footer: "" -->
+
+# ROS2 from<br>Zero to Hero
+
+<p class="name">Dr. Kitti Thamrongaphichartkul</p>
+<p class="role">Research Fellow</p>
+<p class="role">Nanyang Technological University</p>
+<p class="date">8 Oct 2026</p>
+
+<div class="qr">
+
+![](images/qr/repo.png)
+
+github.com/kittinook/ros2_tutorial
+
+</div>
+
+<!--
+Scan the QR code for the course repo: missions, slides and the simulator.
+-->
+
+---
 
 <!-- _class: lead -->
 <!-- _paginate: false -->
@@ -105,6 +142,27 @@ How to use this deck: one mission at a time. Show the overview and the picture, 
 
 <!--
 Part 1 (0 to 8) is the rover, Part 2 (9 to 12) gives it two arms and a drill. Missions 0 to 3 and 9 only use terminal commands; the rest are Python nodes. Suggested pace: see the schedule in TEACHER.md.
+-->
+
+---
+
+<!-- header: Course overview -->
+
+# ROS 2 official / Tutorial docs
+- About ROS 2: [docs.ros.org/en/lyrical/About-ROS.html](https://docs.ros.org/en/lyrical/About-ROS.html)
+- Install ROS 2: [docs.ros.org/en/lyrical/Get-Started/Installation.html](https://docs.ros.org/en/lyrical/Get-Started/Installation.html)
+- Tutorial: [docs.ros.org/en/lyrical/ROS-Framework.html](https://docs.ros.org/en/lyrical/ROS-Framework.html)
+- https://github.com/kittinook/ros2_tutorial/blob/main/ARCHITECTURE.md
+- Concept: https://github.com/kittinook/ros2_tutorial/blob/main/CONCEPTS.md
+
+# Example
+- Tele-operation System: https://github.com/synergylab-ntu/tele_ros2
+- Haption: https://github.com/synergylab-ntu/haption_ros2
+- Kinova Controller: https://github.com/synergylab-ntu/kinova_controller_pkgs
+- Phasespace: https://github.com/synergylab-ntu/phasespace_ros2
+
+<!--
+These are the docs for ROS 2 Lyrical; the course itself runs on Jazzy or newer, and the concepts are the same.
 -->
 
 ---
