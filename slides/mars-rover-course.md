@@ -5,70 +5,65 @@ description: One deck for the whole Mars Rover Academy course: for every mission
 paginate: true
 size: 16:9
 footer: Mars Rover Academy
+theme: gaia
 style: |
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+  /* Based on marp-theme-academic by Kaito Sugimoto (MIT): https://github.com/kaisugi/marp-theme-academic
+     Colours changed to Mars rust. Licence text: slides/README.md */
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Source+Code+Pro:wght@400;600&display=swap');
+  :root {
+    --color-background: #fff;
+    --color-foreground: #333;
+    --color-highlight: #A63A14;
+    --color-dimmed: #888;
+  }
   section {
-    background: #F6F4EE;
-    color: #1B2A3A;
-    font-family: 'IBM Plex Sans', Arial, sans-serif;
+    background-image: none;
+    font-family: 'Noto Sans JP', sans-serif;
     font-size: 26px;
-    padding: 64px 72px 72px;
+    padding: 92px 50px 60px;
     justify-content: flex-start;
   }
-  h1 { font-size: 44px; font-weight: 600; color: #13293D; margin: 0 0 20px; }
-  h3 { font-size: 28px; font-weight: 600; color: #13293D; margin: 0 0 6px; }
-  strong { color: #13293D; }
+  section::after { font-weight: 700; font-size: 16px; content: attr(data-marpit-pagination) '/' attr(data-marpit-pagination-total); }
+  h1 { font-size: 40px; margin: 0 0 18px; }
+  h3 { font-size: 28px; margin: 0 0 6px; }
+  ul ul { font-size: 0.9em; }
   header {
-    font-size: 16px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
-    color: #2F7A4F; top: 28px; left: 72px;
+    top: 0; left: 0; right: 0; height: 64px; padding: 0 50px; box-sizing: border-box; line-height: 64px;
+    background-color: #A63A14; color: #fff; font-size: 22px; font-weight: 700;
   }
-  footer { font-size: 15px; color: #7A8590; left: 72px; }
-  section::after { font-size: 15px; color: #7A8590; right: 72px; }
-  code { font-family: 'JetBrains Mono', 'Courier New', monospace; background: #E9E5DA; color: #13293D; border-radius: 6px; padding: 1px 6px; }
-  pre { background: #0B1C2C; border-radius: 12px; padding: 18px 24px; font-size: 19px; line-height: 1.45; }
-  pre code { background: transparent; color: #D7E3DC; padding: 0; }
+  footer { font-size: 15px; color: #888; left: 50px; }
+  section:has(> div > figure) { background: #fff linear-gradient(#A63A14, #A63A14) no-repeat top / 100% 64px; }
+  code { font-family: 'Source Code Pro', monospace; }
   code, pre code { font-variant-ligatures: none; }
-  pre code span { color: #D7E3DC; }
-  pre .hljs-comment { color: #8FA3B0; }
-  pre .hljs-string { color: #F2C27B; }
-  pre .hljs-keyword, pre .hljs-built_in, pre .hljs-title { color: #9CD3B0; }
-  table { font-size: 21px; border-collapse: collapse; margin: 0 auto; }
-  th { background: #E9E5DA; color: #13293D; }
-  th, td { border: 1px solid #DDD8CC; padding: 6px 14px; }
-  td { background: #FDFCF8; }
-  blockquote { border-left: 6px solid #E07A1F; background: #FBEBDD; color: #4A2C10; padding: 8px 18px; margin: 12px 0; font-size: 22px; }
-  .progress { font-size: 19px; color: #7A8590; white-space: nowrap; word-spacing: 4px; }
+  pre { font-size: 19px; line-height: 1.4; border-radius: 6px; }
+  pre > code { font-size: 1em; }
+  :not(pre) > code { background: #FBEEE8; color: #A63A14; border-radius: 4px; padding: 0 5px; }
+  table { font-size: 21px; margin: 0 auto; }
+  blockquote { font-size: 22px; margin: 12px 0; padding: 8px 18px; border-left: 6px solid #A63A14; background: #FBEEE8; }
+  blockquote::before, blockquote::after { content: ""; }
+  img[alt~="center"] { display: block; margin: 0 auto; }
 
-  section.lead { background: #13293D; color: #EEF2EC; justify-content: center; }
-  section.lead h1 { font-size: 64px; color: #F6F4EE; margin-bottom: 12px; }
-  section.lead p { font-size: 28px; color: #BFD0C8; }
-  section.lead strong { color: #F2A541; }
-  section.lead header { color: #F2A541; }
-  section.lead footer, section.lead::after { color: #8FA3B0; }
-
-  section.part { background: #2F7A4F; color: #F6F4EE; justify-content: center; }
-  section.part h1 { font-size: 60px; color: #F6F4EE; }
-  section.part p { color: #E6F0E9; }
-  section.part header, section.part footer, section.part::after { color: #DDEBE1; }
+  section.lead h1, section.lead h2, section.lead h3 { color: #A63A14; text-align: left; }
+  section.lead h1 strong { -webkit-text-stroke: 1px #A63A14; }
+  section.lead p { text-align: right; }
 
   section.map h1 { margin-bottom: 12px; }
   section.map p:has(> img) { text-align: center; margin: 4px 0 14px; }
-  section.map p > img { max-width: 100%; max-height: 430px; }
+  section.map p > img { max-width: 100%; max-height: 400px; }
   section.map ul { margin: 0; font-size: 23px; }
   section.map li { margin: 4px 0; }
-  .legend { position: absolute; bottom: 30px; left: 72px; right: 140px; margin: 0; font-size: 15px; color: #7A8590; text-align: right; }
+  .legend { position: absolute; bottom: 22px; left: 300px; right: 120px; margin: 0; font-size: 15px; color: #888; text-align: right; }
   .legend .k { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; margin: 0 5px 0 14px; border: 1.5px solid; }
   .k.ros { background: #c8e6c9; border-color: #2e7d32; } .k.mine { background: #fff59d; border-color: #f57f17; }
   .k.topic { background: #bbdefb; border-color: #1565c0; } .k.srv { background: #ffe0b2; border-color: #e65100; }
   .k.act { background: #e1bee7; border-color: #6a1b9a; } .k.param { background: #eeeeee; border-color: #616161; }
+  .progress { font-size: 19px; color: #888; white-space: nowrap; word-spacing: 4px; }
 
   section.checklist ul { list-style: none; padding-left: 0; }
   section.checklist li { font-size: 25px; margin: 9px 0; }
-  section.checklist li::before { content: "☐  "; color: #2F7A4F; font-weight: 700; }
+  section.checklist li::before { content: "☐  "; color: #A63A14; font-weight: 700; }
 ---
 
-
----
 
 <!-- _class: lead -->
 <!-- _paginate: false -->
@@ -161,7 +156,7 @@ mission_control only uses ROS interfaces to check things (topics and the ROS gra
 
 ---
 
-<!-- _class: part -->
+<!-- _class: lead -->
 <!-- header: Part 1 -->
 
 # Part 1: the rover
@@ -1060,7 +1055,7 @@ This is sense, think, act: topics in, decide, topics and services out. The batte
 
 ---
 
-<!-- _class: part -->
+<!-- _class: lead -->
 <!-- header: Part 2 -->
 
 # Part 2: the arms

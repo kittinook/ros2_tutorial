@@ -56,3 +56,33 @@ After editing a source, render it again with [mermaid-cli](https://github.com/me
 ```bash
 npx @mermaid-js/mermaid-cli -i diagrams/topics.mmd -o images/topics.png -b transparent -s 2
 ```
+
+## Theme
+
+`mars-rover-course.md` uses Marp's built-in `gaia` theme with the rules of
+[marp-theme-academic](https://github.com/kaisugi/marp-theme-academic) by Kaito Sugimoto, copied into the deck's `style:` with
+the colours changed. No extra setup is needed in VS Code or marp-cli. Its licence:
+
+```text
+MIT License
+
+Copyright (c) 2022 Kaito Sugimoto
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```

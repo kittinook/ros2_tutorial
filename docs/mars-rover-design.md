@@ -2,7 +2,7 @@
 
 > สถานะ: **เสร็จครบ 4 เฟส** ภารกิจ 0–12 มีเฉลยและทดสอบผ่านบน Humble และ Jazzy, เอกสารและ slides อัปเดตเป็น Mars Rover แล้ว
 >
-> ตัดสินใจแล้ว: rover มี **2 แขน + สว่าน**, ใช้ชื่อตามหัวข้อ 2, คอร์สเต่าเก็บไว้ที่ tag `turtle-quest-v1` แล้วแทนที่บน `main`
+> ตัดสินใจแล้ว: rover มี **2 แขน + สว่าน**, ใช้ชื่อตามหัวข้อ 2
 >
 > แก้ไฟล์นี้หรือคอมเมนต์ได้เลย พอตกลงกันแล้วจะใช้เป็นแบบในการเขียน simulator, mission_control และเนื้อหา 13 ภารกิจ
 
@@ -14,18 +14,18 @@
 - node ผู้คุมภารกิจที่ตรวจงานผ่าน ROS interface ล้วน ๆ ให้ดาว 1–3 ดวง และจับ teleop หรือ `ros2 topic pub` ในภารกิจเขียนโค้ด
 - รูปแบบเอกสาร: overview → the picture → run it → checklist, system map สีเดิม, CONCEPTS, CHECKLIST และ slides
 
-**เปลี่ยน:** simulator เขียนใหม่ทั้งหมด (ไม่มีโค้ดจาก `turtlesim_plus`) ธีมใหม่ และ ROS interface ที่ใกล้หุ่นจริงขึ้น
+**ใหม่:** simulator เขียนเองทั้งหมด และใช้ ROS interface แบบเดียวกับหุ่นจริง
 
-| | Turtle (เดิม) | Mars Rover (ใหม่) |
-|---|---|---|
-| ตำแหน่ง | `turtlesim/Pose` (x, y, theta) | `nav_msgs/Odometry` (quaternion, velocity) |
-| เซนเซอร์ | `ScannerDataArray` ที่ทำขึ้นเอง | `sensor_msgs/LaserScan` ของจริง + กล้องตรวจจับวัตถุ |
-| พลังงาน | ไม่มี | `sensor_msgs/BatteryState` หมดได้จริง ต้องกลับไปชาร์จ |
-| การเคลื่อนที่ | สั่งปุ๊บไปปั๊บ | มีความเร่งจำกัด ลื่นบนทราย ชนหินแล้วหยุด |
-| เฟรมพิกัด | คำนวณเองด้วยมือ | **tf2** จริง เปิดดูใน RViz ได้ |
-| action | ส่วนเสริม เรียกจาก terminal | **action client ในโค้ด** (เจาะหิน: feedback และ cancel) |
-| แขน | 2 แขน, หาตำแหน่งปลายแขนจาก topic | 2 แขนหน้ารถ + สว่านใต้ท้อง + ถาดเก็บตัวอย่าง, ตำแหน่งปลายแขนอ่านจาก tf2 |
-| teleop | `turtlesim turtle_teleop_key` | `teleop_twist_keyboard` (เครื่องมือที่ใช้กับหุ่นจริง) + remap |
+| | Mars Rover |
+|---|---|
+| ตำแหน่ง | `nav_msgs/Odometry` (quaternion, velocity) |
+| เซนเซอร์ | `sensor_msgs/LaserScan` ของจริง + กล้องตรวจจับวัตถุ |
+| พลังงาน | `sensor_msgs/BatteryState` หมดได้จริง ต้องกลับไปชาร์จ |
+| การเคลื่อนที่ | มีความเร่งจำกัด ลื่นบนทราย ชนหินแล้วหยุด |
+| เฟรมพิกัด | **tf2** จริง เปิดดูใน RViz ได้ |
+| action | **action client ในโค้ด** (เจาะหิน: feedback และ cancel) |
+| แขน | 2 แขนหน้ารถ + สว่านใต้ท้อง + ถาดเก็บตัวอย่าง, ตำแหน่งปลายแขนอ่านจาก tf2 |
+| teleop | `teleop_twist_keyboard` (เครื่องมือที่ใช้กับหุ่นจริง) + remap |
 
 ## 2. ชื่อ (เสนอ)
 
@@ -195,10 +195,7 @@ float32 temperature    # drill bit temperature in °C, over 80 °C the bit break
 
 ## 9. Repo และขั้นตอน
 
-**การย้ายจากคอร์สเต่า:**
-- คอร์สเต่าเก็บไว้ที่ tag `turtle-quest-v1` (และ branch `turtle-quest` ถ้าต้องการ)
-- บน `main` จะแทนด้วยคอร์สใหม่ทั้งหมด
-- solutions ยังเป็น `solutions/` ที่ gitignore เหมือนเดิม
+**Solutions:** อยู่ใน `solutions/` ที่ gitignore ไว้
 
 **Layout:** `src/mars_sim`, `src/mars_interfaces`, `src/mission_control`, `missions/00-landing.md` …, `slides/`, `docs/images/`
 

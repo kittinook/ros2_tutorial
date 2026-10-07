@@ -97,8 +97,6 @@ src/
   mission_control/      mission_control, all missions, the star board
 ```
 
-The earlier version of this course, built on a turtle simulator, is kept at the git tag `turtle-quest-v1`.
-
 ## License
 
 Apache-2.0, see [LICENSE](LICENSE).
