@@ -1,0 +1,7 @@
+# Put a new rover into the world. An empty or taken name gets a free one.
+string name
+float64 x
+float64 y
+float64 yaw
+---
+string name        # the name the new rover actually got

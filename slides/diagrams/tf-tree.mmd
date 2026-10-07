@@ -1,0 +1,6 @@
+flowchart TD
+    MAP["map"] --> BASE["rover1/base_link"]
+    BASE --> LASER["rover1/laser"]
+    BASE --> CACHE["rover1/cache"]
+    BASE --> LS["rover1/left_shoulder"] --> LU["rover1/left_upper_arm"] --> LF["rover1/left_forearm"] --> LG["rover1/left_gripper"]
+    BASE --> RS["rover1/right_shoulder"] --> RU["rover1/right_upper_arm"] --> RF["rover1/right_forearm"] --> RG["rover1/right_gripper"]

@@ -1,0 +1,18 @@
+flowchart TB
+    classDef ros fill:#c8e6c9,stroke:#2e7d32,color:#1b1b1b
+    classDef mine fill:#fff59d,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+    classDef topic fill:#bbdefb,stroke:#1565c0,color:#1b1b1b
+    classDef srv fill:#ffe0b2,stroke:#e65100,color:#1b1b1b
+    classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
+    classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
+    LAUNCH["fleet.launch.py<br/>starts the same executable twice"]
+    subgraph NS2["namespace /rover2"]
+        direction LR
+        S2["/rover2/camera/detections"]:::topic --> H2(["sample_hunter<br/>patrol_start = 3"]):::mine --> C2["/rover2/cmd_vel"]:::topic
+    end
+    subgraph NS1["namespace /rover1"]
+        direction LR
+        S1["/rover1/camera/detections"]:::topic --> H1(["sample_hunter<br/>patrol_start = 0"]):::mine --> C1["/rover1/cmd_vel"]:::topic
+    end
+    LAUNCH --> NS1
+    LAUNCH --> NS2

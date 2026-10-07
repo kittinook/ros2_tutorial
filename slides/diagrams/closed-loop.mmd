@@ -1,0 +1,9 @@
+flowchart LR
+    classDef ros fill:#c8e6c9,stroke:#2e7d32,color:#1b1b1b
+    classDef mine fill:#fff59d,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+    classDef topic fill:#bbdefb,stroke:#1565c0,color:#1b1b1b
+    classDef srv fill:#ffe0b2,stroke:#e65100,color:#1b1b1b
+    classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
+    classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
+    SIM(["mars_sim"]):::ros --> ODOM["/rover1/odom"]:::topic --> ME(["go_to_goal (your node)<br/>odom_callback: remember<br/>control_loop: steer, 20 per second"]):::mine --> CMD["/rover1/cmd_vel"]:::topic
+    CMD -- "the rover moves, so the next odom changes" --> SIM

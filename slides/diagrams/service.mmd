@@ -1,0 +1,6 @@
+sequenceDiagram
+    participant You as you (client)
+    participant Sim as mars_sim (server)
+    You->>Sim: /rover1/take_photo request {}
+    Note right of Sim: a landmark within 3 m,<br/>in front of the camera?
+    Sim-->>You: response {success: true, message: 'Photo of Olympus Rock sent to Earth.'}

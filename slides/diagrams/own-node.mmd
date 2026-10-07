@@ -1,0 +1,8 @@
+flowchart LR
+    classDef ros fill:#c8e6c9,stroke:#2e7d32,color:#1b1b1b
+    classDef mine fill:#fff59d,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+    classDef topic fill:#bbdefb,stroke:#1565c0,color:#1b1b1b
+    classDef srv fill:#ffe0b2,stroke:#e65100,color:#1b1b1b
+    classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
+    classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
+    PKG["package my_rover<br/>package.xml + setup.py + .py files"] -- "setup.py entry point" --> EXE["executable square<br/>installed by colcon build"] -- "ros2 run my_rover square" --> NODE(["node /square<br/>the running program"]):::mine

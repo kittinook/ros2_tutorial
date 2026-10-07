@@ -1,0 +1,10 @@
+flowchart LR
+    subgraph P1["your node"]
+        direction TB
+        A1["your code"] --> B1["rclpy"] --> C1["rcl / rmw"] --> D1["DDS"]
+    end
+    subgraph P2["mars_sim"]
+        direction TB
+        A2["sim code"] --> B2["rclpy"] --> C2["rcl / rmw"] --> D2["DDS"]
+    end
+    P1 <-- "discovery + messages<br/>(network or shared memory)" --> P2

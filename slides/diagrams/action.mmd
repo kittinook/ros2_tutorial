@@ -1,0 +1,11 @@
+sequenceDiagram
+    participant You as your node (client)
+    participant Sim as mars_sim (server)
+    You->>Sim: /rover1/drill goal {depth: 0.3}
+    Sim-->>You: accepted
+    loop while drilling
+        Sim--)You: feedback {depth, temperature}
+    end
+    Note over You: 71 °C: too hot!
+    You->>Sim: cancel
+    Sim-->>You: result: canceled, "Stopped at 0.14 m."

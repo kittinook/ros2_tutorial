@@ -1,0 +1,8 @@
+# Used by mission_control to build a mission's world. Not meant for learners.
+string kind        # rock | sand | crater | sample | landmark | drill_site | core | meteorite
+string id          # optional name; empty = generated
+float64 x
+float64 y
+float64 radius     # size in metres; 0 = the default size for this kind
+---
+string id

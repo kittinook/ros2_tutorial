@@ -1,100 +1,104 @@
-# Turtle Quest: learn ROS 2 by playing with turtles
+# Mars Rover Academy: learn ROS 2 by driving a rover on Mars
 
-![A dual-arm turtle grips a crate with both arms and carries it to the drop-off zone; the side panel ticks off the objectives](docs/images/hero.gif)
+![rover1 carries a meteorite to the lander with both arms; the panel on the right ticks off the objectives](docs/images/mars/hero.png)
 
-A beginner ROS 2 course with no wall of theory up front. You launch a mission, get the turtle to the goal, and the game checks your work and hands out stars.
-Each mission adds one piece of ROS 2, from driving a turtle by hand to a two-armed turtle that carries crates on its own.
+A beginner ROS 2 course with no wall of theory up front. You launch a mission, get the rover to do the job, and mission control checks your work and hands out stars.
+Each mission adds one piece of ROS 2, from driving the rover with the keyboard to a rover that drills core samples and carries meteorites home on its own.
 
-The course is built on [turtlesim_plus](https://github.com/tchoopojcharoen/turtlesim_plus),
-a turtlesim whose turtles have sensors, eat pizza and deliver parcels. This repo adds:
+Everything runs in a small 2D simulator written for this course, `mars_sim`. It runs on any laptop, and it speaks the same ROS interfaces as real robots:
 
-- A quest master, `quest_master`, that sets up the world, shows the objectives in the window, checks them live and gives stars for speed.
-- Talking turtles: `ros2 topic pub /turtle1/say ...` puts a speech bubble over the turtle.
-- Dual-arm turtles with two 2-link arms and grippers, driven with the standard `sensor_msgs/JointState`. Heavy crates need both hands.
-- Goal flags, a coordinate grid and a status panel, so you can always see where the turtle is (x, y, θ).
-- Cheat detection. Coding missions notice if you sneak in teleop or `ros2 topic pub`, by reading the real ROS graph.
+- `nav_msgs/Odometry` for where the rover is, `sensor_msgs/LaserScan` for the laser, `sensor_msgs/BatteryState` for the battery, `sensor_msgs/JointState` for the arms, and a real tf2 tree you can open in RViz.
+- A camera that reports what it sees (samples, rocks, landmarks) as range and bearing.
+- Physics that matter: the rover speeds up and slows down gradually, slips on sand, stops when it hits a rock, and runs out of battery.
+- Two 2-link arms with grippers, a sample cache on its back, and a drill that is a ROS 2 **action** with feedback and cancel.
+- `mission_control` sets up each mission, shows the objectives in the window, checks them live and gives stars for speed. Coding missions notice if you sneak in the keyboard or `ros2 topic pub`, by reading the real ROS graph.
 
 ## Mission map
 
-### Part 1: the turtle
+### Part 1: the rover
 
 | # | Mission | You learn | Tools |
 |---|---|---|---|
-| 0 | [Boot Camp](missions/00-boot-camp.md) | workspace, build, launch, your first nodes | terminal |
-| 1 | [Spy Turtle](missions/01-spy.md) | nodes, topics, messages | `ros2 topic` |
-| 2 | [Steering Wheel](missions/02-steering.md) | publishing `Twist`, speeds and angles (radians) | `ros2 topic pub` |
-| 3 | [Service Hotline](missions/03-hotline.md) | services (request/response) | `ros2 service` |
-| 4 | [My First Node](missions/04-first-node.md) | creating a package, a Python publisher | Python |
-| 5 | [Turtle Eyes](missions/05-eyes.md) | subscribers, closed-loop control | Python |
-| 6 | [Pizza Hunter](missions/06-pizza-hunter.md) | reading a sensor, service clients in code | Python |
-| 7 | [Turtle Team](missions/07-team.md) | namespaces, parameters, launch files | Python + launch |
-| 8 | [Boss: Turtle Express](missions/08-boss-delivery.md) | all of the above + thinking in state machines | Python |
+| 0 | [Landing](missions/00-landing.md) | workspace, build, launch, teleop, remapping | terminal |
+| 1 | [Telemetry](missions/01-telemetry.md) | nodes, topics, messages | `ros2 topic` |
+| 2 | [Manual Drive](missions/02-manual-drive.md) | publishing `Twist`, speeds and angles (radians) | `ros2 topic pub` |
+| 3 | [Mission Control](missions/03-mission-control.md) | services (request/response) | `ros2 service` |
+| 4 | [Survey Square](missions/04-survey-square.md) | creating a package, a Python publisher | Python |
+| 5 | [Waypoints](missions/05-waypoints.md) | subscribers, `Odometry` and quaternions, closed-loop control | Python |
+| 6 | [Sample Hunter](missions/06-sample-hunter.md) | camera and laser, service clients in code | Python |
+| 7 | [Rover Fleet](missions/07-rover-fleet.md) | namespaces, parameters, launch files | Python + launch |
+| 8 | [Boss: Power Crisis](missions/08-boss-power-crisis.md) | all of the above + state machines, battery | Python |
 
 ### Part 2: the arms
 
 | # | Mission | You learn | Tools |
 |---|---|---|---|
-| 9 | [Arm Day](missions/09-arm-day.md) | joints, `sensor_msgs/JointState`, `SetBool` grippers | `ros2 topic pub`, `ros2 service call` |
-| 10 | [Long Reach](missions/10-long-reach.md) | coordinate frames, forward & inverse kinematics | Python |
-| 11 | [Pick & Place](missions/11-pick-place.md) | manipulation as a state machine, waiting for motion | Python |
-| 12 | [Boss: Heavy Lifting](missions/12-boss-heavy-lifting.md) | mobile manipulation, two-arm coordination | Python |
+| 9 | [Arm Check](missions/09-arm-check.md) | joints, `sensor_msgs/JointState`, `SetBool` grippers, `tf2_echo` | `ros2 topic pub`, `ros2 service call` |
+| 10 | [Frames](missions/10-frames.md) | coordinate frames with tf2, inverse kinematics | Python |
+| 11 | [Drill & Stow](missions/11-drill-and-stow.md) | actions in code: goal, feedback, cancel, result + pick and place | Python |
+| 12 | [Boss: Meteorite Recovery](missions/12-boss-meteorite-recovery.md) | mobile manipulation, two arms together | Python |
 
 Missions 0–3 and 9 use terminal commands only; the others are your own Python nodes.
 
 Every mission has a system map: a diagram of the nodes, topics, services and actions involved, so you can see how the pieces connect
 and not only what to type. [ARCHITECTURE.md](ARCHITECTURE.md) puts it all together: how ROS 2 systems are designed,
 when to use a topic, a service, an action or a parameter, and what happens under the hood.
+[CONCEPTS.md](CONCEPTS.md) goes the other way: it lists every part of ROS 2, shows which mission teaches it,
+explains each one with an example, and ends with a self-check and the topics to learn after the course.
 
 ## Quick start (5 minutes)
 
-You need Ubuntu 22.04 and ROS 2 Humble ([install guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html)).
+You need ROS 2 on Ubuntu. We recommend **ROS 2 Jazzy** (Ubuntu 24.04) or newer ([install guide](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html)).
+The course is tested on Jazzy and Humble (Ubuntu 22.04). With another distro, put its name wherever you see `jazzy`.
 
 ```bash
-sudo apt install python3-pygame python3-numpy ros-humble-turtlesim
-git clone <url of this repo> ~/turtle_quest
-cd ~/turtle_quest
-source /opt/ros/humble/setup.bash
+source /opt/ros/jazzy/setup.bash
+sudo apt install python3-pygame python3-numpy ros-$ROS_DISTRO-teleop-twist-keyboard
+git clone <url of this repo> ~/mars_rover
+cd ~/mars_rover
 colcon build --symlink-install
 source install/setup.bash
-ros2 launch turtle_quest mission.launch.py mission:=0
+ros2 launch mission_control mission.launch.py mission:=0
 ```
 
-Then go to [Mission 0: Boot Camp](missions/00-boot-camp.md).
+Then go to [Mission 0: Landing](missions/00-landing.md).
 
 To see your stars so far:
 
 ```bash
-ros2 run turtle_quest progress
+ros2 run mission_control progress
 ```
 
 ## How every mission works
 
 ```bash
-# Terminal 1 — start the mission (turtle window + quest master)
-ros2 launch turtle_quest mission.launch.py mission:=<number>
+# Terminal 1: start the mission (the simulator window + mission control)
+ros2 launch mission_control mission.launch.py mission:=<number>
 
-# Terminal 2, 3, ... — do the work (remember to source every new terminal!)
-source ~/turtle_quest/install/setup.bash
+# Terminal 2, 3, ...: do the work (remember to source every new terminal!)
+source ~/mars_rover/install/setup.bash
 ```
 
-The objectives are listed in the panel on the right and tick themselves off when done. Finish them all and you get stars based on your time (coding missions start the clock when the turtle first moves). To start over, close the window (or press Ctrl+C) and launch again.
+The objectives are listed in the panel on the right and tick themselves off when done. Finish them all and you get stars based on your time (coding missions start the clock when the rover first moves). Some missions can also fail, for example when the battery runs flat; the panel tells you why. To start over, close the window (or press Ctrl+C) and launch again.
 
 ## What's in this repo
 
 ```text
-missions/                 mission guides 0-12 (start here)
-CHEATSHEET.md             ROS 2 commands + Python snippets on one page
-ARCHITECTURE.md           how ROS 2 systems fit together: the big picture, diagrams, design patterns
-TEACHER.md                instructor guide: lesson plan, classroom contests, writing new missions
+missions/               mission guides 0-12 (start here)
+CHEATSHEET.md           ROS 2 commands + Python snippets on one page
+ARCHITECTURE.md         how ROS 2 systems fit together: the big picture, diagrams, design patterns
+CONCEPTS.md             every part of ROS 2, which mission teaches it, with examples and a self-check
+CHECKLIST.md            progress checklist for learners: objectives, steps and skills of every mission
+slides/                 teaching slides (Marp): the whole course in one deck, a one-hour intro, per-mission decks
+TEACHER.md              instructor guide: lesson plan, classroom contests, writing new missions
 src/
-  turtlesim_plus/            the simulator (adapted from the original, see its README)
-  turtlesim_plus_interfaces/ messages/services/actions of turtlesim_plus
-  turtle_quest/              quest_master, all missions, the star board
+  mars_sim/             the simulator (world.py: physics, render.py: drawing, node.py: the ROS interface)
+  mars_interfaces/      its messages, services and the Drill action
+  mission_control/      mission_control, all missions, the star board
 ```
 
-## Credits and license
+The earlier version of this course, built on a turtle simulator, is kept at the git tag `turtle-quest-v1`.
 
-- `turtlesim_plus` and `turtlesim_plus_interfaces` are adapted from
-  [tchoopojcharoen/turtlesim_plus](https://github.com/tchoopojcharoen/turtlesim_plus)
-  by Pi Thanacha Choopojcharoen. The changes are listed in [src/turtlesim_plus/README.md](src/turtlesim_plus/README.md).
-- All code in this repository is licensed GPL-3.0, like the original (see [LICENSE](src/turtlesim_plus/LICENSE)).
+## License
+
+Apache-2.0, see [LICENSE](LICENSE).

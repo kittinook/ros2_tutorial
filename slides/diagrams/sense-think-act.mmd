@@ -1,0 +1,24 @@
+flowchart LR
+    classDef ros fill:#c8e6c9,stroke:#2e7d32,color:#1b1b1b
+    classDef mine fill:#fff59d,stroke:#f57f17,stroke-width:3px,color:#1b1b1b
+    classDef topic fill:#bbdefb,stroke:#1565c0,color:#1b1b1b
+    classDef srv fill:#ffe0b2,stroke:#e65100,color:#1b1b1b
+    classDef act fill:#e1bee7,stroke:#6a1b9a,color:#1b1b1b
+    classDef param fill:#eeeeee,stroke:#616161,color:#1b1b1b
+    WORLD(["mars_sim<br/>(the world)"]):::ros
+    subgraph SENSE["sense: subscribe"]
+        ODOM["/rover1/odom"]:::topic
+        CAM["/rover1/camera/detections"]:::topic
+        BAT["/rover1/battery"]:::topic
+    end
+    THINK(["think: power_crisis (your node)<br/>which state am I in?"]):::mine
+    subgraph ACT["act: publish / call"]
+        CMD["/rover1/cmd_vel"]:::topic
+        SRV{{"/rover1/collect<br/>/rover1/unload"}}:::srv
+    end
+    WORLD --> ODOM & CAM & BAT
+    ODOM & CAM & BAT --> THINK
+    THINK --> CMD
+    THINK -. call .-> SRV
+    CMD -- "the rover moves" --> WORLD
+    SRV -.- WORLD

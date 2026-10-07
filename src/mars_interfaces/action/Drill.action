@@ -1,0 +1,8 @@
+# Drill into the ground under the rover and leave a core sample next to it.
+float32 depth          # target depth in metres (0.1 - 0.5)
+---
+bool success
+string message
+---
+float32 depth          # current depth in metres
+float32 temperature    # drill bit temperature in degrees C; above 80 the bit breaks

@@ -7,3 +7,8 @@ __pycache__/
 
 # reference solutions are kept out of the repo (see TEACHER.md)
 solutions/
+
+# exported slide decks (build them with marp-cli, see slides/README.md)
+slides/**/*.pdf
+slides/**/*.pptx
+slides/**/*.html
