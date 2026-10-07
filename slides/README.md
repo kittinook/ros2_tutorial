@@ -9,6 +9,8 @@ what learners should see and the usual mistakes.
 | `ros2-in-one-hour.md` | a one-hour introduction for the first session: 27 slides, seven live demos |
 | `missions/00-landing.md` … `missions/08-boss-power-crisis.md` | the long version of Part 1: every step of every guide, one deck per mission |
 
+A PDF of the course deck, [`mars-rover-course.pdf`](mars-rover-course.pdf), is kept in the repo so it can be read on GitHub. After editing the deck, export it again (see *Presenting*) and commit both files.
+
 Each deck in `missions/` follows the same order:
 
 1. title and a roadmap of Part 1, with finished missions ticked (✓) and today's mission marked (▶)

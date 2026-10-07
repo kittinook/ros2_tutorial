@@ -10,5 +10,6 @@ solutions/
 
 # exported slide decks (build them with marp-cli, see slides/README.md)
 slides/**/*.pdf
+!slides/mars-rover-course.pdf
 slides/**/*.pptx
 slides/**/*.html
